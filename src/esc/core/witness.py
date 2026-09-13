@@ -16,6 +16,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from esc.core.types import EpistemicLevel, Evidence, Fact, StepResult, StepSpec
+from esc.core.lookup import verify_lookup
 
 
 class WitnessResult(BaseModel):
@@ -109,6 +110,11 @@ def evaluate_witness(
         return WitnessResult(passed=False, promoted_level="candidate", witness_type=step.witness_type,
                              detail="Unresolved assumptions cannot cross a promotion boundary.")
     corpus_map = {key: value for key, value in corpus_map.items() if key in step.permitted_sources}
+
+    if step.lookup is not None:
+        passed, detail = verify_lookup(step, result, input_facts, corpus_map)
+        return WitnessResult(passed=passed, promoted_level="verified" if passed else "candidate",
+                             witness_type="type_1", detail=detail)
 
     # Type I: Deterministic Witness
     if step.witness_type == "type_1":

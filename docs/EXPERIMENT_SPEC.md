@@ -1,5 +1,7 @@
 # ESC Experiment Specifications
 
+Current executable status is tracked in [EXPERIMENT_1_PLAN.md](EXPERIMENT_1_PLAN.md); the concise research entry point is [RESEARCH_NOTE.md](../RESEARCH_NOTE.md). The new relational family is a first controlled domain, not confirmation of the general hypothesis. No numerical effect claims in this design should be interpreted as observed results.
+
 This is the intended research design, not an implementation-completeness claim. The current runner is a clean A/B/C pipeline pilot with unmatched compute. GEPA/Flex, live EPC comparisons and confirmatory H1 testing remain deferred. See [pre-experiment review](PREFLIGHT_REVIEW.md).
 
 ## Experiment 1: Does Epistemic Isolation Change Horizon Scaling?

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from typing import Any, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 EpistemicLevel = Literal[
     "candidate",
@@ -69,6 +69,22 @@ class Fact(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class LookupSpec(BaseModel):
+    """Public authoritative-row operation; never contains an expected output."""
+
+    relation: str
+    subject: str | None = None
+    subject_key: str | None = None
+
+    @model_validator(mode="after")
+    def one_subject(self):
+        if (self.subject is None) == (self.subject_key is None):
+            raise ValueError("Lookup requires exactly one literal subject or input fact key")
+        if not self.relation or self.subject == "" or self.subject_key == "":
+            raise ValueError("Lookup identifiers must be nonempty")
+        return self
+
+
 class StepSpec(BaseModel):
     """Specification of an epistemic transition step in a dependency DAG."""
 
@@ -79,6 +95,7 @@ class StepSpec(BaseModel):
     required_level: EpistemicLevel = "supported"
     expected_key: str | None = None
     witness_type: Literal["type_1", "type_2", "type_3"] = "type_2"
+    lookup: LookupSpec | None = None
 
 
 class StepResult(BaseModel):

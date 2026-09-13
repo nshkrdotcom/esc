@@ -1,5 +1,7 @@
 # EpiDAG prototype
 
+This page describes the **legacy** family. The new opt-in [relational_v2 family](RELATIONAL_BENCHMARK.md) addresses exact relational depth, opaque document identifiers, paired worlds, stable answer space, and equal corpus access. It is the M1 implementation in [the Experiment 1 plan](EXPERIMENT_1_PLAN.md); it does not establish semantic-depth or matched-compute results.
+
 The generator builds synthetic company profiles, founder biographies, earnings reports and simple distractors. It keeps true values in evaluator fields. Live A/B receive the question, public step specifications, and corpus; C receives each public step's goal, permitted sources and projected canonical facts.
 
 ## Task sizes and actual depths

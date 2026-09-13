@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from esc.benchmark.generator import generate_epidag_task
+from esc.benchmark.relational import generate_relational_suite
 from esc.eval.gepa_metric import epistemic_gepa_metric
 from esc.runner import run_experiment_1
 from esc.config import DEFAULT_MODEL, RLMConfig, task_lm
@@ -23,7 +24,10 @@ console = Console()
 
 @app.command()
 def run(
-    depths: str = typer.Option("2,4,8,16", help="Nominal task sizes; actual dependency depths are 2,4,7,15"),
+    depths: str = typer.Option("2,4,8,16", help="Depths for relational_v2; nominal node counts for legacy"),
+    benchmark: str = typer.Option("legacy", help="legacy or relational_v2 (controlled relational chains)"),
+    split: str = typer.Option("dev", help="dev, train, validation, test; namespaced worlds for relational_v2"),
+    world_width: int = typer.Option(16, min=2, help="Entities per relational world, fixed across depths"),
     tasks_per_depth: int = typer.Option(3, min=1, help="Number of unique tasks per depth level"),
     repetitions: int = typer.Option(3, min=1, help="Number of repetitions per task (for pass@k and pass^k)"),
     mock: bool = typer.Option(True, help="Use deterministic/stochastic mock workers for instant offline evaluation"),
@@ -49,6 +53,10 @@ def run(
         raise typer.BadParameter("Use distinct task sizes from 2,4,8,16")
     if reflection_model:
         raise typer.BadParameter("GEPA compilation is not implemented; omit --reflection-model")
+    if benchmark not in {"legacy", "relational_v2"}:
+        raise typer.BadParameter("--benchmark must be legacy or relational_v2")
+    if split not in {"dev", "train", "validation", "test"} or (benchmark == "legacy" and split != "dev"):
+        raise typer.BadParameter("Use a valid split; legacy supports dev only")
     if model.startswith("ollama_chat/") and num_ctx <= max_tokens:
         raise typer.BadParameter("--num-ctx must exceed --max-tokens")
     console.rule("[bold cyan]ESC A/B/C Pipeline Pilot[/bold cyan]")
@@ -76,6 +84,7 @@ def run(
         rlm_config=RLMConfig(max_iters=max_iters, max_llm_calls=max_subcalls,
                              max_output_chars=max_output_chars),
         n_samples=n_samples,
+        benchmark=benchmark, split=split, world_width=world_width,
     )
 
     # 1. Display Overall Multi-Dimensional Evaluation Vector Table R = (A, C, E, F, V, T)
@@ -140,9 +149,18 @@ def run(
 def bench(
     depth: int = typer.Option(4, help="Depth of synthetic task DAG to inspect (2, 4, 8, 16)"),
     seed: int = typer.Option(42, help="Random seed"),
+    benchmark: str = typer.Option("legacy", help="legacy or relational_v2"),
+    world_width: int = typer.Option(16, min=2, help="Entities per relational world"),
 ) -> None:
     """Generate and inspect an EpiDAG synthetic benchmark task."""
-    task = generate_epidag_task(task_id=f"demo_d{depth}", depth=depth, seed=seed)
+    if benchmark == "relational_v2":
+        if depth not in {2, 4, 8, 16}:
+            raise typer.BadParameter("Use depth 2, 4, 8, or 16")
+        task = generate_relational_suite(depths=[depth], tasks_per_depth=1, seed=seed, width=world_width)[0]
+    elif benchmark == "legacy":
+        task = generate_epidag_task(task_id=f"demo_d{depth}", depth=depth, seed=seed)
+    else:
+        raise typer.BadParameter("--benchmark must be legacy or relational_v2")
     console.rule(f"[bold cyan]EpiDAG Task Inspection: Depth {depth}[/bold cyan]")
     rprint(f"[bold]Question:[/bold] {task.question}")
     rprint(f"[bold]Final Target Answer:[/bold] {task.target_answer()}")

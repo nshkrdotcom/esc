@@ -2,6 +2,8 @@
 
 Read [the pre-experiment review](PREFLIGHT_REVIEW.md) before running. The current implementation supports a pipeline pilot across A/B/C. Matched-compute inference, live EPCₖ comparisons, GEPA compilation, and the full ablation study remain unfinished.
 
+For the next Experiment 1 development stage, select `--benchmark relational_v2 --split dev`. This opt-in family has exact requested depth and equal corpus access; see [RELATIONAL_BENCHMARK.md](RELATIONAL_BENCHMARK.md) and the [implementation gates](EXPERIMENT_1_PLAN.md). Commands below without this flag reproduce the legacy runtime pilot, not the controlled-depth benchmark.
+
 ## Offline preparation
 
 Use the locked environment and test without invoking a model:

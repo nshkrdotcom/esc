@@ -13,6 +13,7 @@ from typing import Any
 import dspy
 
 from esc.benchmark.generator import generate_task_suite
+from esc.benchmark.relational import generate_relational_suite
 from esc.config import RLMConfig
 from esc.telemetry import RunTelemetry
 from esc.eval.decay import HorizonDecayResult, fit_horizon_decay
@@ -62,6 +63,9 @@ def run_experiment_1(
     output_dir: str | Path | None = None,
     rlm_config: RLMConfig | None = None,
     n_samples: int = 3,
+    benchmark: str = "legacy",
+    split: str = "dev",
+    world_width: int = 16,
 ) -> ExperimentResult:
     """Execute Experiment 1: Does epistemic isolation change horizon scaling?
 
@@ -76,6 +80,12 @@ def run_experiment_1(
         raise ValueError("depths must be distinct task sizes from 2, 4, 8, 16")
     if tasks_per_depth < 1 or repetitions < 1:
         raise ValueError("tasks_per_depth and repetitions must be positive")
+    if benchmark not in {"legacy", "relational_v2"}:
+        raise ValueError("benchmark must be legacy or relational_v2")
+    if split not in {"train", "validation", "test", "dev"} or world_width < 2:
+        raise ValueError("Invalid split or world_width (must be >= 2)")
+    if benchmark == "legacy" and split != "dev":
+        raise ValueError("Legacy benchmark has no split isolation; use relational_v2")
     rlm_config = rlm_config or RLMConfig()
     if n_samples < 1:
         raise ValueError("n_samples must be positive")
@@ -94,6 +104,8 @@ def run_experiment_1(
         "python": platform.python_version(), "dspy": version("dspy"),
         "compute_matched": False, "error_injection": False,
         "scope": "pipeline pilot; no confirmatory H1 inference",
+        "benchmark": benchmark, "split": split,
+        "world_width": world_width if benchmark == "relational_v2" else None,
     }
     out_path = Path(output_dir) if output_dir else None
     if out_path:
@@ -111,12 +123,12 @@ def run_experiment_1(
     }
 
     # Generate test tasks across depths
-    task_suite = generate_task_suite(
-        depths=depths,
-        tasks_per_depth=tasks_per_depth,
-        seed=seed,
-        inject_errors=False,
-    )
+    if benchmark == "relational_v2":
+        task_suite = generate_relational_suite(depths=depths, tasks_per_depth=tasks_per_depth,
+                                              seed=seed, split=split, width=world_width)
+    else:
+        task_suite = generate_task_suite(depths=depths, tasks_per_depth=tasks_per_depth,
+                                         seed=seed, inject_errors=False)
 
     # Clean tasks only: live A/B injection hooks are not implemented.
     all_tasks = task_suite
@@ -159,7 +171,8 @@ def run_experiment_1(
                     raise
                 run_res.depth = task.dependency_depth
                 run_res.details.update(repetition=rep, nominal_task_size=task.depth,
-                                       use_mock=use_mock)
+                                       use_mock=use_mock, benchmark=benchmark,
+                                       world_id=task.metadata.get("world_id"), split=split)
                 results_by_system_and_task[sys_name][task.task_id].append(run_res)
                 all_runs.append(run_res)
                 if telemetry:

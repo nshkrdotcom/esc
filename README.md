@@ -4,6 +4,8 @@ MIT License © 2026 nshkrdotcom.
 
 ESC explores whether keeping persistent typed state separate from each language-model invocation improves multi-step reliability. DSPy RLM supplies disposable reasoning contexts; a state kernel projects accepted facts and checks candidate outputs against corpus evidence or deterministic arithmetic rules.
 
+Start with [RESEARCH_NOTE.md](RESEARCH_NOTE.md) for the hypothesis, actual evidence, four planned figures and current study status. [EXPERIMENT_1_PLAN.md](docs/EXPERIMENT_1_PLAN.md) tracks implementation gates. Experiment 1 has a validated runtime and an opt-in controlled relational benchmark; the matched-compute study and GEPA remain unfinished.
+
 **Current status: pipeline prototype.** The pre-experiment review fixed execution and measurement bugs, but this is not yet a controlled horizon-scaling study. Read [the review and remaining limitations](docs/PREFLIGHT_REVIEW.md) and [the pilot runbook](docs/RUNBOOK.md) before spending inference compute.
 
 ## Implemented pilot
@@ -38,7 +40,7 @@ Completed episodes are flushed to `runs.jsonl`, including available trajectories
 
 The summary reports accuracy, repeated success, abstention, measured tokens, and descriptive horizon fits. Unsupported/inapplicable EPC and false-promotion metrics are N/A. H₁ remains untested until compute matching and benchmark controls are implemented.
 
-The CLI's original `--depths 2,4,8,16` selects node counts. Actual dependency depths are 2, 4, 7, and 15; these are used in the report. Some edges are procedural and the long tasks repeat simple rules, so this prototype does not isolate semantic dependency depth.
+For the default legacy family, `--depths 2,4,8,16` selects node counts with actual depths 2, 4, 7, and 15. The new `--benchmark relational_v2` family has exact depths 2/4/8/16, fixed corpus size across paired depths, opaque shuffled sources, and full corpus access for every condition. It controls relational dependency depth; broader semantic reasoning and matched compute remain untested. See [the relational benchmark](docs/RELATIONAL_BENCHMARK.md).
 
 ## Research objective
 

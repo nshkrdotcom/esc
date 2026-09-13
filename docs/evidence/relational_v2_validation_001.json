@@ -1,0 +1,79 @@
+{
+  "scope": "One development task, one outer repetition; runtime compatibility only, compute unmatched, H1 untested.",
+  "configuration": {
+    "task_sizes": [
+      2
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 42,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "tasks_sha256": "92e607b91c75f86c64dd81b277e1fa458448e76e7a0d22dfa6749f937cfbae8f",
+  "raw_artifacts": "outputs/relational_v2_validation_001/ (local, ignored by Git)",
+  "results": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "final_answer": "e89bdb5a84cf1",
+      "target_answer": "e89bdb5a84cf1",
+      "is_correct": true,
+      "abstained": false,
+      "tokens_used": 11822,
+      "latency_ms": 36601.11740499997
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "final_answer": "e89bdb5a84cf1",
+      "target_answer": "e89bdb5a84cf1",
+      "is_correct": true,
+      "abstained": false,
+      "tokens_used": 48763,
+      "latency_ms": 160445.99182300226
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "final_answer": null,
+      "target_answer": "e89bdb5a84cf1",
+      "is_correct": false,
+      "abstained": true,
+      "tokens_used": 14426,
+      "latency_ms": 42270.46647699899
+    }
+  ],
+  "observations": [
+    "B used three rollouts and final extraction after iteration limits.",
+    "C repeatedly parsed no rows, returned insufficient at N1, and committed no facts.",
+    "No live error intervention or matched-budget comparison was performed."
+  ]
+}
