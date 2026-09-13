@@ -7,6 +7,7 @@ The StateKernel does.
 from __future__ import annotations
 
 from typing import Any
+from esc.core.answers import answers_equal
 from esc.core.types import AuditEntry, EpistemicLevel, Fact, StepResult, StepSpec, level_ok
 from esc.core.witness import WitnessResult
 
@@ -32,7 +33,7 @@ class StateKernel:
             if key in self.facts:
                 fact = self.facts[key]
                 if level_ok(fact.level, step.required_level):
-                    projected.append(fact)
+                    projected.append(fact.model_copy(deep=True))
         return projected
 
     def commit(
@@ -46,6 +47,7 @@ class StateKernel:
             return False
 
         # Apply the promoted level from witness
+        fact = fact.model_copy(deep=True)
         fact.level = witness.promoted_level
 
         # Verify that the promoted level satisfies contract
@@ -84,7 +86,8 @@ class StateKernel:
         return entry
 
     def get_fact(self, key: str) -> Fact | None:
-        return self.facts.get(key)
+        fact = self.facts.get(key)
+        return fact.model_copy(deep=True) if fact else None
 
     def total_tokens_used(self) -> int:
         return sum(e.tokens_used for e in self.audit_log)
@@ -96,7 +99,7 @@ class StateKernel:
             if k in ground_truth_facts:
                 true_val = str(ground_truth_facts[k]).strip().lower()
                 pred_val = str(f.value).strip().lower()
-                if true_val != pred_val:
+                if not answers_equal(pred_val, true_val):
                     count += 1
         return count
 

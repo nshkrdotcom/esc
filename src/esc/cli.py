@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Optional
 import typer
 from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
 
-from esc.benchmark.generator import generate_epidag_task, generate_task_suite
+from esc.benchmark.generator import generate_epidag_task
 from esc.eval.gepa_metric import epistemic_gepa_metric
 from esc.runner import run_experiment_1
 
@@ -24,42 +22,50 @@ console = Console()
 
 @app.command()
 def run(
-    depths: str = typer.Option("2,4,8,16", help="Comma-separated depths to evaluate (e.g. 2,4,8,16)"),
-    tasks_per_depth: int = typer.Option(3, help="Number of unique tasks per depth level"),
-    repetitions: int = typer.Option(3, help="Number of repetitions per task (for pass@k and pass^k)"),
+    depths: str = typer.Option("2,4,8,16", help="Nominal task sizes; actual dependency depths are 2,4,7,15"),
+    tasks_per_depth: int = typer.Option(3, min=1, help="Number of unique tasks per depth level"),
+    repetitions: int = typer.Option(3, min=1, help="Number of repetitions per task (for pass@k and pass^k)"),
     mock: bool = typer.Option(True, help="Use deterministic/stochastic mock workers for instant offline evaluation"),
     model: Optional[str] = typer.Option("ollama_chat/qwen3:14b", help="Task LM for RLM and workers"),
-    reflection_model: Optional[str] = typer.Option(None, help="Reflection LM for GEPA optimization"),
+    reflection_model: Optional[str] = typer.Option(None, help="Reserved; rejected until GEPA compilation is implemented"),
+    seed: int = typer.Option(42, help="Corpus and offline mock random seed"),
+    max_tokens: int = typer.Option(2048, min=1, help="Maximum generated tokens per LM call, not episode"),
+    num_ctx: int = typer.Option(8192, min=1024, help="Ollama context window per call"),
+    temperature: float = typer.Option(0.6, min=0.0, help="Sampling temperature"),
     output_dir: str = typer.Option("outputs/experiment_1", help="Directory to save experiment results"),
 ) -> None:
     """Run Experiment 1: Does epistemic isolation change horizon scaling?"""
-    depth_list = [int(d.strip()) for d in depths.split(",") if d.strip()]
-    console.rule("[bold cyan]ESC Experiment 1: Epistemic State Compilation Horizon Scaling[/bold cyan]")
-    rprint(f"[bold]Evaluating depths:[/bold] {depth_list}")
+    try:
+        depth_list = [int(d.strip()) for d in depths.split(",")]
+    except ValueError as exc:
+        raise typer.BadParameter("Use comma-separated task sizes: 2,4,8,16") from exc
+    if not depth_list or len(set(depth_list)) != len(depth_list) or any(d not in {2, 4, 8, 16} for d in depth_list):
+        raise typer.BadParameter("Use distinct task sizes from 2,4,8,16")
+    if reflection_model:
+        raise typer.BadParameter("GEPA compilation is not implemented; omit --reflection-model")
+    console.rule("[bold cyan]ESC A/B/C Pipeline Pilot[/bold cyan]")
+    rprint(f"[bold]Nominal task sizes:[/bold] {depth_list}")
     rprint(f"[bold]Tasks per depth:[/bold] {tasks_per_depth} | [bold]Repetitions (k):[/bold] {repetitions}")
     rprint(f"[bold]Execution mode:[/bold] {'MOCK (offline deterministic / stochastic)' if mock else f'REAL LM ({model})'}")
 
     sub_lm = None
-    ref_lm = None
     if not mock:
         import dspy
         lm_name = model or "ollama_chat/qwen3:14b"
         rprint(f"[yellow]Initializing DSPy Task LM: {lm_name}...[/yellow]")
         api_base = "http://localhost:11434" if "ollama" in lm_name else None
-        sub_lm = dspy.LM(lm_name, api_base=api_base)
+        options = {"num_ctx": num_ctx, "reasoning_effort": "none"} if "ollama" in lm_name else {}
+        sub_lm = dspy.LM(lm_name, api_base=api_base, cache=False,
+                         temperature=temperature, max_tokens=max_tokens, num_retries=0, **options)
         dspy.configure(lm=sub_lm)
-
-        if reflection_model:
-            rprint(f"[yellow]Initializing DSPy Reflection LM: {reflection_model}...[/yellow]")
-            ref_lm = dspy.LM(reflection_model)
 
     exp_result = run_experiment_1(
         depths=depth_list,
+        seed=seed,
         tasks_per_depth=tasks_per_depth,
         repetitions=repetitions,
         use_mock=mock,
         sub_lm=sub_lm,
-        reflection_lm=ref_lm,
         output_dir=output_dir,
     )
 
@@ -80,8 +86,8 @@ def run(
             f"{vec.accuracy:.1%}",
             f"{vec.consistency:.1%}",
             f"{vec.pass_at_k:.1%}",
-            f"{vec.error_propagation:.1%}",
-            f"{vec.false_promotion_rate:.3f}",
+            f"{vec.error_propagation:.1%}" if vec.error_propagation is not None else "N/A",
+            f"{vec.false_promotion_rate:.3f}" if vec.false_promotion_rate is not None else "N/A",
             f"{vec.abstention_rate:.1%}",
             f"{int(vec.avg_tokens):,}",
         )
@@ -93,30 +99,32 @@ def run(
     decay_table.add_column("Intercept (α)", justify="right")
     decay_table.add_column("Decay Rate (β)", justify="right", style="bold magenta")
     decay_table.add_column("R² Fit", justify="right")
-    decay_table.add_column("Acc @ d=2", justify="right")
-    decay_table.add_column("Acc @ d=16", justify="right")
+    measured_depths = sorted(next(iter(exp_result.horizon_decays.values())).accuracies_by_depth)
+    min_depth, max_depth = measured_depths[0], measured_depths[-1]
+    decay_table.add_column(f"Acc @ d={min_depth}", justify="right")
+    decay_table.add_column(f"Acc @ d={max_depth}", justify="right")
 
     for sys_name, decay in exp_result.horizon_decays.items():
-        acc_2 = decay.accuracies_by_depth.get(2, 0.0)
-        acc_16 = decay.accuracies_by_depth.get(16, 0.0)
+        acc_min = decay.accuracies_by_depth[min_depth]
+        acc_max = decay.accuracies_by_depth[max_depth]
         decay_table.add_row(
             sys_name,
             f"{decay.alpha:.3f}",
             f"{decay.beta:.4f}",
             f"{decay.r_squared:.3f}",
-            f"{acc_2:.1%}",
-            f"{acc_16:.1%}",
+            f"{acc_min:.1%}",
+            f"{acc_max:.1%}",
         )
     console.print(decay_table)
 
     # 3. Hypothesis H1 summary
     h1 = exp_result.h1_hypothesis
-    console.rule("[bold green]Hypothesis H1 Verification[/bold green]")
-    rprint(f"[bold]Hypothesis H1 Supported:[/bold] [{'green' if h1['h1_supported'] else 'red'}]{h1['h1_supported']}[/]")
+    console.rule("[bold green]Descriptive Pilot Comparison[/bold green]")
+    rprint("[bold]Hypothesis H1:[/bold] Not tested (pipeline pilot)")
     rprint(f"[bold]β_A (Continuous):[/bold] {h1['beta_A']:.4f}")
     rprint(f"[bold]β_C (Isolated):[/bold]   {h1['beta_C']:.4f}")
     rprint(f"[bold]Result:[/bold] {h1['interpretation']}")
-    rprint(f"\n[green]✓ Results and audit logs saved to: {output_dir}/experiment_1_summary.json[/green]")
+    rprint(f"\n[green]✓ Summary, individual runs, and available trajectories saved to: {output_dir}/[/green]")
 
 
 @app.command()

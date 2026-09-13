@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 import dspy
+from esc.core.answers import answers_equal
 
 
 def epistemic_gepa_metric(
@@ -18,13 +19,17 @@ def epistemic_gepa_metric(
     Returns numeric score along with rich natural language diagnostic feedback
     for the reflection LM to evolve signatures and instructions.
     """
-    target = getattr(example, "target_answer", "") or getattr(example, "answer", "")
-    pred_ans = getattr(pred, "final_answer", None) or getattr(pred, "value", None) or str(pred)
-
-    target_str = str(target).strip().lower()
-    pred_str = str(pred_ans).strip().lower()
-
-    is_correct = (pred_str == target_str) or (target_str in pred_str)
+    target = getattr(example, "target_answer", None)
+    if callable(target):
+        target = target()
+    if target is None:
+        target = getattr(example, "answer", None)
+    if target is None or not str(target).strip():
+        raise ValueError("GEPA metric requires a nonempty evaluator target")
+    pred_ans = getattr(pred, "final_answer", None)
+    if pred_ans is None:
+        pred_ans = getattr(pred, "value", None)
+    is_correct = answers_equal(str(pred_ans) if pred_ans is not None else None, str(target))
     score = 1.0 if is_correct else 0.0
 
     failures: list[str] = []

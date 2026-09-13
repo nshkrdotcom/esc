@@ -11,8 +11,10 @@ from typing import Any
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.core.answers import answers_equal
 from esc.systems.base import BaseSystem, SystemResult
 from esc.workers.continuous import ContinuousWorker
+from esc.workers.usage import invoke_with_usage
 from esc.workers.mock import MockContinuousWorker
 
 
@@ -53,32 +55,46 @@ class SystemAContinuous(BaseSystem):
         error_propagated = False
         final_answer: str | None = None
         tokens_used = 1500 + task.depth * 300
+        details = {"usage_kind": "simulated", "injected_error": bool(task.injected_error_node_id)}
+        if task.injected_error_node_id and not isinstance(self.worker, MockContinuousWorker):
+            raise NotImplementedError("Live injection into a continuous RLM trajectory is not implemented")
 
         if isinstance(self.worker, MockContinuousWorker):
             res = self.worker.solve_dag(
                 task_prompt=task.question,
                 ground_truth=task.ground_truth_map,
                 node_ids=node_keys,
-                injected_error_node=task.injected_error_node_id,
+                injected_error_node=(
+                    (task.node_by_id(task.injected_error_node_id).step_spec.expected_key or task.injected_error_node_id)
+                    if task.injected_error_node_id else None
+                ),
             )
             step_answers = res["step_answers"]
             final_answer = res["final_answer"]
-            error_propagated = res["corrupted"]
+            if task.injected_error_node_id:
+                injected = task.node_by_id(task.injected_error_node_id)
+                descendants = {injected.step_spec.expected_key or injected.node_id}
+                for node in task.nodes:
+                    key = node.step_spec.expected_key or node.node_id
+                    if any(parent in descendants for parent in node.step_spec.requires):
+                        descendants.add(key)
+                        if key in step_answers and not answers_equal(step_answers[key], task.ground_truth_map[key]):
+                            error_propagated = True
         else:
-            try:
-                pred = self.worker.forward(
-                    task_description=task.question,
-                    corpus_context=full_corpus,
-                )
-                final_answer = getattr(pred, "final_answer", str(pred))
-            except Exception as ex:
-                final_answer = None
+            pred, usage = invoke_with_usage(
+                self.worker, task_description=task.public_description(), corpus_context=full_corpus,
+            )
+            final_answer = getattr(pred, "final_answer", None)
+            if not isinstance(final_answer, str):
+                raise ValueError("Continuous worker did not return a string final_answer")
+            final_answer = final_answer.strip() or None
+            tokens_used = usage["total_tokens"]
+            details.update(usage_kind="measured", usage=usage,
+                           trajectory=getattr(pred, "trajectory", None),
+                           reasoning_steps=getattr(pred, "reasoning_steps", None))
 
         duration_ms = (time.perf_counter() - start_time) * 1000
-        is_correct = (
-            final_answer is not None
-            and final_answer.strip().lower() == target.strip().lower()
-        )
+        is_correct = answers_equal(final_answer, target)
 
         false_promotions = sum(
             1 for k, v in step_answers.items()
@@ -97,6 +113,7 @@ class SystemAContinuous(BaseSystem):
             latency_ms=duration_ms,
             false_promotions=false_promotions,
             contract_violations=0,  # Continuous has no contracts
-            abstained=False,
+            abstained=final_answer is None,
             error_propagated=error_propagated,
+            details=details,
         )

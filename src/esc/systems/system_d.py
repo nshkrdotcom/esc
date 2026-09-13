@@ -30,6 +30,8 @@ class SystemDGEPA(BaseSystem):
         reflection_lm: dspy.LM | None = None,
         optimized_instructions: str | None = None,
     ) -> None:
+        if not use_mock:
+            raise NotImplementedError("Condition D requires a compiled GEPA program; use A/B/C for the pilot.")
         super().__init__(name="Condition_D_Isolated_GEPA")
         self.use_mock = use_mock
         self.sub_lm = sub_lm
@@ -63,5 +65,5 @@ class SystemDGEPA(BaseSystem):
             contract_violations=res.contract_violations,
             abstained=res.abstained,
             error_propagated=res.error_propagated,
-            details={"gepa_optimized": True, **res.details},
+            details={"gepa_optimized": False, "simulation_only": True, **res.details},
         )

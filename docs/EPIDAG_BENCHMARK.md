@@ -1,53 +1,26 @@
-# EpiDAG: Synthetic Dependency Benchmark
+# EpiDAG prototype
 
-## 1. Overview
+The generator builds synthetic company profiles, founder biographies, earnings reports and simple distractors. It keeps true values in evaluator fields. Live A/B receive the question, public step specifications, and corpus; C receives each public step's goal, permitted sources and projected canonical facts.
 
-EpiDAG is a controlled synthetic benchmark designed to evaluate composability, dependency depth scaling, and error containment in autonomous language agents.
+## Task sizes and actual depths
 
-Unlike static black-box benchmarks, EpiDAG:
-- Generates precise dependency DAGs from a hidden knowledge graph.
-- Supports depths $d \in \{2, 4, 8, 16\}$.
-- Integrates distractor documents with confounding entities, dates, and financial metrics.
-- Provides non-oracle witness criteria (Type I arithmetic/comparison, Type II corpus span verification).
-- Deliberately injects upstream errors to compute the **Error Propagation Coefficient ($EPC_k$)**.
+| `--depths` selection (nominal node count) | Measured dependency depth | Final task |
+|---|---|---|
+| 2 | 2 | Revenue exceeds 150: true/false |
+| 4 | 4 | Target revenue divided by Alpha revenue |
+| 8 | 7 | Ratio exceeds a sampled threshold: approved/rejected |
+| 16 | 15 | Eight further rule-based compliance transitions |
 
----
+Depth is computed from `requires`, not node count or stored display labels. Ratios return four decimal places. Threshold generation includes positive and negative answers. Compliance rules and exact required output strings are public instructions.
 
-## 2. DAG Topology Across Depths
+The eight-node graph has edges N1→N2, N1/N2→N3, N3→N4, N4/N5→N6, N6→N7, N7→N8; N5 is an independent revenue lookup. The longest path contains seven nodes.
 
-### Depth 2
-- **N1**: Retrieve enterprise revenue from corporate profile (Type II grounded).
-- **N2**: Compare revenue against statutory threshold condition (Type I deterministic).
+## Important limits
 
-### Depth 4
-- **N1**: Retrieve enterprise revenue (Type II grounded).
-- **N2**: Identify principal founder/owner (Type II grounded, requires N1).
-- **N3**: Retrieve top-line revenue of subsidiary/target enterprise (Type II grounded, requires N2).
-- **N4**: Deterministically calculate ratio of target revenue to parent revenue (Type I arithmetic, requires N1, N3).
+Some prerequisites are procedurally enforced but not necessary to infer the answer. Source names reveal document roles. Distractors are obvious. The sixteen-node case extends a decision through repetitive string transformations. Task size changes answer type and difficulty as well as graph depth. This generator is suitable for pipeline checks, not yet a controlled horizon-scaling benchmark.
 
-### Depth 8 (Paper-Sized Topology)
-```
-N1 (Identify owner) ────────┐
-                             ├── N3 (Identify target) ──┐
-N2 (Founding year of owner) ─┘                          │
-                                                        ├── N6 (Ratio) ── N7 (Threshold) ── N8 (Final Decision)
-N4 (Retrieve target 2024 revenue) ──────────────────────┤
-N5 (Retrieve Alpha 2024 revenue) ───────────────────────┘
-```
+Type II witnesses verify allowed source spans and extractive claim presence, not semantic entailment. Type I witnesses recompute ordered arithmetic and explicit threshold/decision rules from accepted state. Neither reads hidden answers. Mock workers intentionally read hidden answers and cannot supply evidence for an architectural advantage.
 
-### Depth 16
-Extends the depth-8 topology with an 8-stage chained auditing and regulatory compliance cascade ($N_9 \dots N_{16}$), testing extreme horizon bounds.
+## Error injection
 
----
-
-## 3. Error Propagation Coefficient ($EPC_k$)
-
-To measure how far stochastic mistakes travel down a reasoning chain:
-
-$$EPC_k = P(N_{i+k} \text{ wrong} \mid N_i \text{ wrong})$$
-
-### Behavior Under Test:
-- **Rolling Continuous Agent (Condition A & B)**:
-  An injected upstream error ($N_i = \text{wrong}$) enters the reasoning narrative, is rationalized by the model in subsequent steps, and contaminates downstream conclusions ($EPC_k \to 1.0$).
-- **Isolated State Kernel (Condition C & D)**:
-  An unverified candidate claim fails witness validation, fails to commit to canonical state, and causes downstream consumers to cleanly return `insufficient` without propagating corrupted values ($EPC_k \to 0.0$).
+Clean and injected suites use distinct task IDs; using the same seed pairs their corpora. Node-level injected values remain a harness facility. C can replace a candidate before promotion; live A/B reject injected tasks because no equivalent within-trajectory intervention exists. The default runner executes only clean tasks, so EPC is N/A. Distance-conditioned live EPCₖ remains unimplemented.

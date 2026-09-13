@@ -30,16 +30,12 @@ class EpistemicWorker(dspy.Module):
         self.sub_lm = sub_lm
 
         if use_rlm:
-            try:
-                self.solve = dspy.RLM(
-                    ResolveStep,
-                    sub_lm=sub_lm,
-                    max_iters=max_iters,
-                    max_llm_calls=max_llm_calls,
-                )
-            except Exception:
-                # Fallback to ChainOfThought if RLM fails to initialize (e.g. missing interpreter or sub_lm)
-                self.solve = dspy.ChainOfThought(ResolveStep)
+            self.solve = dspy.RLM(
+                ResolveStep,
+                sub_lm=sub_lm,
+                max_iters=max_iters,
+                max_llm_calls=max_llm_calls,
+            )
         else:
             self.solve = dspy.ChainOfThought(ResolveStep)
 
@@ -52,34 +48,17 @@ class EpistemicWorker(dspy.Module):
         """Resolve exactly one epistemic step without inheriting prior conversational context."""
         start_time = time.perf_counter()
 
-        pred = self.solve(
-            goal=goal,
-            accepted_facts=accepted_facts,
-            evidence_context=evidence_context,
-        )
-
-        # Handle prediction output extraction
-        if hasattr(pred, "result") and isinstance(pred.result, StepResult):
-            return pred.result
-
-        # If DSPy returned string or dictionary
-        raw_res = getattr(pred, "result", None)
-        if isinstance(raw_res, dict):
-            return StepResult.model_validate(raw_res)
-        elif isinstance(raw_res, str):
-            return StepResult(
-                status="supported",
-                value=raw_res,
-                evidence=[],
-                assumptions=[],
-                raw_output=raw_res,
+        with dspy.context(lm=self.sub_lm or dspy.settings.lm):
+            pred = self.solve(
+                goal=goal,
+                accepted_facts=accepted_facts,
+                evidence_context=evidence_context,
             )
 
-        # Fallback extraction from other fields
-        val = getattr(pred, "value", None) or getattr(pred, "final_answer", None)
-        return StepResult(
-            status="supported" if val else "insufficient",
-            value=str(val) if val is not None else None,
-            evidence=[],
-            assumptions=[],
-        )
+        self.last_trajectory = getattr(pred, "trajectory", None)
+        raw_res = getattr(pred, "result", None)
+        if isinstance(raw_res, StepResult):
+            return raw_res
+        if isinstance(raw_res, str):
+            return StepResult.model_validate_json(raw_res)
+        return StepResult.model_validate(raw_res)

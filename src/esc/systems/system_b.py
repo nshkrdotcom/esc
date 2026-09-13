@@ -14,6 +14,7 @@ import time
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.core.answers import answers_equal, vote_key
 from esc.systems.base import BaseSystem, SystemResult
 from esc.systems.system_a import SystemAContinuous
 
@@ -32,10 +33,13 @@ class SystemBSearchHeavy(BaseSystem):
         sub_lm: dspy.LM | None = None,
     ) -> None:
         super().__init__(name="Condition_B_SearchHeavy")
+        if n_samples < 1:
+            raise ValueError("n_samples must be positive")
         self.n_samples = n_samples
         self.use_mock = use_mock
         self.mock_error_rate = mock_error_rate
         self.sub_lm = sub_lm
+        self.sub_system = SystemAContinuous(use_mock=use_mock, mock_error_rate=mock_error_rate, sub_lm=sub_lm)
 
     def run(self, task: EpiDAGTask) -> SystemResult:
         start_time = time.perf_counter()
@@ -46,16 +50,11 @@ class SystemBSearchHeavy(BaseSystem):
         answers: list[str] = []
 
         for i in range(self.n_samples):
-            sub_system = SystemAContinuous(
-                use_mock=self.use_mock,
-                mock_error_rate=self.mock_error_rate,
-                sub_lm=self.sub_lm,
-            )
-            sub_res = sub_system.run(task)
+            sub_res = self.sub_system.run(task)
             results.append(sub_res)
             total_tokens += sub_res.tokens_used
             if sub_res.final_answer:
-                answers.append(sub_res.final_answer.strip())
+                answers.append(vote_key(sub_res.final_answer))
 
         # Majority vote / Best-of-N selection
         if answers:
@@ -65,10 +64,7 @@ class SystemBSearchHeavy(BaseSystem):
             best_answer = None
 
         duration_ms = (time.perf_counter() - start_time) * 1000
-        is_correct = (
-            best_answer is not None
-            and best_answer.lower() == target.strip().lower()
-        )
+        is_correct = answers_equal(best_answer, target)
 
         # Average false promotions across sample rollouts
         avg_false_promotions = int(sum(r.false_promotions for r in results) / len(results)) if results else 0
@@ -86,7 +82,7 @@ class SystemBSearchHeavy(BaseSystem):
             latency_ms=duration_ms,
             false_promotions=avg_false_promotions,
             contract_violations=0,
-            abstained=False,
+            abstained=best_answer is None,
             error_propagated=error_propagated,
-            details={"rollouts_count": len(results)},
+            details={"rollouts_count": len(results), "rollouts": [r.model_dump() for r in results]},
         )

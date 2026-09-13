@@ -70,6 +70,8 @@ def generate_epidag_task(
     inject_error_at_node: str | None = None,
 ) -> EpiDAGTask:
     """Generate an EpiDAG task with a specific dependency depth d in {2, 4, 8, 16}."""
+    if depth not in {2, 4, 8, 16}:
+        raise ValueError("Supported task sizes are 2, 4, 8, 16")
     rng = random.Random(seed)
 
     alpha_comp = rng.choice(COMPANY_NAMES)
@@ -79,7 +81,7 @@ def generate_epidag_task(
     alpha_rev = rng.randint(100, 300)
     target_rev = rng.randint(400, 900)
     ratio_true = round(target_rev / alpha_rev, 4)
-    threshold = round(ratio_true - 0.25, 2)
+    threshold = round(ratio_true + rng.choice([-0.25, 0.25]), 2)
     threshold_holds = "true" if ratio_true > threshold else "false"
 
     docs: list[CorpusDocument] = []
@@ -214,7 +216,7 @@ def generate_epidag_task(
             node_id="N3",
             step_spec=StepSpec(
                 step_id="N3",
-                goal=f"Retrieve the 2024 top-line revenue of the acquisition target {target_comp} overseen by {founder} in million USD.",
+                goal="Retrieve the 2024 top-line revenue of the supplied owner's acquisition target in million USD.",
                 requires=["N2_owner"],
                 permitted_sources=["doc_founder_bio", "doc_target_earnings"],
                 required_level="supported",
@@ -230,7 +232,7 @@ def generate_epidag_task(
             node_id="N4",
             step_spec=StepSpec(
                 step_id="N4",
-                goal=f"Calculate the ratio of target revenue ({target_rev}) to Alpha revenue ({alpha_rev}).",
+                goal="Calculate target revenue divided by Alpha revenue using the supplied facts. Return only the ratio rounded to four decimal places.",
                 requires=["N3_target_rev", "N1_alpha_rev"],
                 permitted_sources=[],
                 required_level="supported",
@@ -285,7 +287,7 @@ def generate_epidag_task(
             node_id="N2",
             step_spec=StepSpec(
                 step_id="N2",
-                goal=f"Identify the founding year of {founder}'s inaugural venture.",
+                goal="Identify the founding year of the supplied owner's inaugural venture.",
                 requires=["N1_owner"],
                 permitted_sources=["doc_founder_bio"],
                 required_level="supported",
@@ -301,7 +303,7 @@ def generate_epidag_task(
             node_id="N3",
             step_spec=StepSpec(
                 step_id="N3",
-                goal=f"Identify the acquisition target enterprise overseen by {founder}.",
+                goal="Identify the acquisition target enterprise overseen by the supplied owner.",
                 requires=["N1_owner", "N2_founding_year"],
                 permitted_sources=["doc_founder_bio"],
                 required_level="supported",
@@ -349,7 +351,7 @@ def generate_epidag_task(
             node_id="N6",
             step_spec=StepSpec(
                 step_id="N6",
-                goal=f"Calculate the ratio of target revenue ({target_rev}) to Alpha revenue ({alpha_rev}).",
+                goal="Calculate target revenue divided by Alpha revenue using the supplied facts. Return only the ratio rounded to four decimal places.",
                 requires=["N4_target_rev", "N5_alpha_rev"],
                 permitted_sources=[],
                 required_level="supported",
@@ -423,7 +425,7 @@ def generate_epidag_task(
                     node_id=n_id,
                     step_spec=StepSpec(
                         step_id=n_id,
-                        goal=f"Execute compliance check stage {step_idx} based on previous outcome.",
+                        goal=f"Execute compliance check stage {step_idx}: return stage_{step_idx}_cleared if the previous outcome is approved or ends in _cleared; otherwise return stage_{step_idx}_halted.",
                         requires=[f"N{step_idx-1}_audit_stage_{step_idx-1}" if step_idx > 9 else "N8_final_decision"],
                         permitted_sources=[],
                         required_level="verified",
@@ -446,6 +448,8 @@ def generate_epidag_task(
             if n.node_id == inject_error_at_node:
                 n.injected_error_value = f"CORRUPT_{n.true_value}_WRONG"
                 break
+        else:
+            raise ValueError(f"Unknown injection node: {inject_error_at_node}")
 
     corpus_map = {d.doc_id: d.content for d in docs}
 
@@ -476,7 +480,7 @@ def generate_task_suite(
             task_count += 1
             error_node = f"N{max(1, d // 2)}" if inject_errors else None
             task = generate_epidag_task(
-                task_id=f"epidag_d{d}_t{i+1}",
+                task_id=f"epidag_d{d}_t{i+1}" + ("_injected" if inject_errors else ""),
                 depth=d,
                 distractor_count=5,
                 seed=seed + task_count,

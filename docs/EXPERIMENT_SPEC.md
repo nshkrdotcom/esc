@@ -1,5 +1,7 @@
 # ESC Experiment Specifications
 
+This is the intended research design, not an implementation-completeness claim. The current runner is a clean A/B/C pipeline pilot with unmatched compute. GEPA/Flex, live EPC comparisons and confirmatory H1 testing remain deferred. See [pre-experiment review](PREFLIGHT_REVIEW.md).
+
 ## Experiment 1: Does Epistemic Isolation Change Horizon Scaling?
 
 ### 1. The Core Question
@@ -25,8 +27,8 @@ $$\beta_C \ll \beta_A \quad \text{at matched compute budget.}$$
 
 ### 4. Controlled Token Budget & Hardware Execution
 - **Task LM**: Qwen3-14B (Dense), Q4_K_M GGUF.
-- **Hardware**: Single 16GB GPU (RTX 5060 Ti). 8.5GB weights, 7.5GB KV cache headroom.
-- **Metrics recorded**:
+- **Hardware**: Single 16GB GPU (RTX 5060 Ti). Available KV capacity depends on weights, runtime buffers, context settings and other GPU use.
+- **Intended study metrics** (the pilot currently records provider prompt/completion tokens and total LM calls without root/subcall separation):
   - Prefill tokens
   - Generated tokens
   - RLM root calls & subcalls

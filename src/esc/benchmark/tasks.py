@@ -53,3 +53,20 @@ class EpiDAGTask(BaseModel):
 
     def target_answer(self) -> str:
         return self.ground_truth_map.get(self.final_node_id, "")
+
+    def public_description(self) -> str:
+        """Expose identical task instructions to A/B and C, without evaluator labels."""
+        import json
+        return self.question + "\nReturn the final step value only as final_answer.\nPublic step specifications:\n" + json.dumps(
+            [node.step_spec.model_dump() for node in self.nodes]
+        )
+
+    @property
+    def dependency_depth(self) -> int:
+        levels: dict[str, int] = {}
+        for node in self.nodes:
+            step = node.step_spec
+            levels[step.expected_key or step.step_id] = 1 + max(
+                (levels[key] for key in step.requires), default=0
+            )
+        return levels[self.final_node_id]

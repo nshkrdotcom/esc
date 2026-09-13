@@ -26,20 +26,18 @@ class ContinuousWorker(dspy.Module):
         self.sub_lm = sub_lm
 
         if use_rlm:
-            try:
-                self.solve = dspy.RLM(
-                    ContinuousSolve,
-                    sub_lm=sub_lm,
-                    max_iters=max_iters,
-                    max_llm_calls=max_llm_calls,
-                )
-            except Exception:
-                self.solve = dspy.ChainOfThought(ContinuousSolve)
+            self.solve = dspy.RLM(
+                ContinuousSolve,
+                sub_lm=sub_lm,
+                max_iters=max_iters,
+                max_llm_calls=max_llm_calls,
+            )
         else:
             self.solve = dspy.ChainOfThought(ContinuousSolve)
 
     def forward(self, task_description: str, corpus_context: str) -> dspy.Prediction:
-        return self.solve(
-            task_description=task_description,
-            corpus_context=corpus_context,
-        )
+        with dspy.context(lm=self.sub_lm or dspy.settings.lm):
+            return self.solve(
+                task_description=task_description,
+                corpus_context=corpus_context,
+            )

@@ -11,11 +11,13 @@ from typing import Any
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.core.answers import answers_equal
 from esc.core.kernel import StateKernel
 from esc.core.types import AblationMode, Fact, StepResult
 from esc.core.witness import WitnessResult, evaluate_witness
 from esc.systems.base import BaseSystem, SystemResult
 from esc.workers.epistemic import EpistemicWorker
+from esc.workers.usage import invoke_with_usage
 from esc.workers.mock import MockEpistemicWorker
 
 
@@ -39,6 +41,8 @@ class SystemCIsolated(BaseSystem):
     ) -> None:
         super().__init__(name=f"Condition_C_Isolated{f'_{ablation_mode}' if ablation_mode != 'none' else ''}")
         self.use_mock = use_mock
+        if ablation_mode not in {"none", "no_typing", "shared_history", "no_verification", "raw_summaries"}:
+            raise NotImplementedError(f"Unsupported ablation: {ablation_mode}")
         self.ablation_mode = ablation_mode
         if worker is not None:
             self.worker = worker
@@ -58,6 +62,8 @@ class SystemCIsolated(BaseSystem):
         step_answers: dict[str, str] = {}
         total_tokens = 0
         rolling_history: list[str] = []
+        usages = []
+        injection_applied = False
 
         for node in task.nodes:
             step = node.step_spec
@@ -76,7 +82,7 @@ class SystemCIsolated(BaseSystem):
             if self.ablation_mode not in ["no_typing", "raw_summaries"]:
                 missing_requires = [req for req in step.requires if req not in [f.key for f in local_state]]
                 if missing_requires:
-                    contract_violations += 1
+                    # Missing input is a blocked contract, not consumption of invalid state.
                     abstained = True
                     kernel.record_audit(
                         step=step,
@@ -107,6 +113,7 @@ class SystemCIsolated(BaseSystem):
             if isinstance(self.worker, MockEpistemicWorker):
                 # If error injection was requested at this node
                 if node.injected_error_value is not None:
+                    injection_applied = True
                     prediction = StepResult(
                         status="supported",
                         value=node.injected_error_value,
@@ -122,30 +129,27 @@ class SystemCIsolated(BaseSystem):
                         true_evidence=node.true_evidence,
                     )
             else:
-                try:
-                    prediction = self.worker.forward(
-                        goal=step.goal,
-                        accepted_facts=local_state,
-                        evidence_context=evidence_context,
-                    )
-                    step_tokens = 450
-                except Exception as ex:
-                    prediction = StepResult(
-                        status="insufficient",
-                        value=None,
-                        evidence=[],
-                        assumptions=[f"Worker error: {ex}"],
-                    )
+                prediction, usage = invoke_with_usage(
+                    self.worker, goal=step.goal, accepted_facts=local_state,
+                    evidence_context=evidence_context,
+                )
+                usages.append(usage)
+                step_tokens = usage["total_tokens"]
+                if node.injected_error_value is not None:
+                    injection_applied = True
+                    prediction = prediction.model_copy(update={"value": node.injected_error_value})
 
             total_tokens += step_tokens
 
-            if prediction.status == "insufficient":
+            if prediction.status != "supported" or not prediction.value:
                 abstained = True
                 kernel.record_audit(
                     step=step,
                     input_facts=local_state,
                     result=prediction,
                     committed=False,
+                    tokens_used=step_tokens,
+                    trajectory=getattr(self.worker, "last_trajectory", None),
                 )
                 break
 
@@ -192,6 +196,7 @@ class SystemCIsolated(BaseSystem):
                 committed=committed,
                 witness=witness,
                 tokens_used=step_tokens,
+                trajectory=getattr(self.worker, "last_trajectory", None),
             )
 
             if committed:
@@ -205,20 +210,20 @@ class SystemCIsolated(BaseSystem):
         final_fact = kernel.get_fact(task.final_node_id)
         final_answer = final_fact.value if final_fact else None
         target = task.target_answer()
-        is_correct = (
-            final_answer is not None
-            and final_answer.strip().lower() == target.strip().lower()
-        )
+        is_correct = answers_equal(final_answer, target)
 
         false_promotions = kernel.false_promotion_count(task.ground_truth_map)
 
-        # Error propagation check: if an upstream error was injected, did it reach downstream?
         error_propagated = False
-        if task.injected_error_node_id:
-            # Check if any fact committed AFTER the injected node is corrupt
-            for k, f in kernel.facts.items():
-                if k != task.injected_error_node_id and "CORRUPT" in f.value:
-                    error_propagated = True
+        if injection_applied:
+            injected = task.node_by_id(task.injected_error_node_id)
+            descendants = {injected.step_spec.expected_key or injected.node_id}
+            for node in task.nodes:
+                key = node.step_spec.expected_key or node.node_id
+                if any(parent in descendants for parent in node.step_spec.requires):
+                    descendants.add(key)
+                    if key in step_answers and not answers_equal(step_answers[key], task.ground_truth_map[key]):
+                        error_propagated = True
 
         return SystemResult(
             system_name=self.name,
@@ -234,5 +239,9 @@ class SystemCIsolated(BaseSystem):
             contract_violations=contract_violations,
             abstained=abstained,
             error_propagated=error_propagated,
-            details={"audit_log_length": len(kernel.audit_log)},
+            details={"audit_log_length": len(kernel.audit_log),
+                     "audit_log": [entry.model_dump(mode="json") for entry in kernel.audit_log],
+                     "usage_kind": "simulated" if isinstance(self.worker, MockEpistemicWorker) else "measured",
+                     "step_usage": usages, "injected_error": injection_applied,
+                     "promotion_count": len(kernel.facts)},
         )

@@ -12,6 +12,8 @@ class ResolveStep(dspy.Signature):
     Use only supplied accepted facts and permitted evidence.
     Do not assume unsupported propositions.
     Return insufficient rather than inventing missing state.
+    Return only the requested scalar or entity name in value (no units or prose).
+    Cite exact source IDs shown in document headers, with spans containing the value.
     """
 
     goal: str = dspy.InputField(desc="Specific sub-goal to resolve for this step.")

@@ -27,8 +27,8 @@ class EvalVector(BaseModel):
     accuracy: float = Field(description="A: Final task accuracy")
     consistency: float = Field(description="C: Repeated-run consistency (pass^k)")
     pass_at_k: float = Field(description="Searchable capability (pass@k)")
-    error_propagation: float = Field(description="E: EPC_k P(downstream wrong | upstream wrong)")
-    false_promotion_rate: float = Field(description="F: Rate of invalid claims crossing boundary")
+    error_propagation: float | None = Field(description="E: EPC_k P(downstream wrong | upstream wrong)")
+    false_promotion_rate: float | None = Field(description="F: Rate of invalid claims crossing boundary")
     abstention_rate: float = Field(description="V: Rate of safe abstention / Insufficient return")
     avg_tokens: float = Field(description="T: Average total token expenditure per task")
     avg_latency_ms: float = Field(description="Average latency in ms")
@@ -92,8 +92,8 @@ def compute_eval_vector(
             accuracy=0.0,
             consistency=0.0,
             pass_at_k=0.0,
-            error_propagation=0.0,
-            false_promotion_rate=0.0,
+            error_propagation=None,
+            false_promotion_rate=None,
             abstention_rate=0.0,
             avg_tokens=0.0,
             avg_latency_ms=0.0,
@@ -116,16 +116,18 @@ def compute_eval_vector(
 
     # 2. Error Propagation EPC_k (E)
     # Measured over runs where an upstream error was deliberately injected
-    error_runs = [r for r in all_runs if r.details.get("injected_error") or r.error_propagated or "CORRUPT" in str(r.final_answer)]
-    if error_runs:
-        error_propagation = float(np.mean([1.0 if r.error_propagated else 0.0 for r in error_runs]))
-    else:
-        error_propagation = float(np.mean([1.0 if not r.is_correct and not r.abstained else 0.0 for r in all_runs]))
+    error_runs = [r for r in all_runs if r.details.get("injected_error")]
+    error_propagation = (
+        float(np.mean([r.error_propagated for r in error_runs])) if error_runs else None
+    )
 
     # 3. False Promotion Rate (F)
-    total_steps = sum(len(r.intermediate_answers) or 1 for r in all_runs)
-    total_false_promotions = sum(r.false_promotions for r in all_runs)
-    false_promotion_rate = float(total_false_promotions / max(1, total_steps))
+    promotion_runs = [r for r in all_runs if "promotion_count" in r.details]
+    total_promotions = sum(r.details["promotion_count"] for r in promotion_runs)
+    false_promotion_rate = (
+        sum(r.false_promotions for r in promotion_runs) / total_promotions
+        if total_promotions else None
+    )
 
     # 4. Abstention / Coverage Behavior (V)
     abstention_rate = float(np.mean([1.0 if r.abstained else 0.0 for r in all_runs]))

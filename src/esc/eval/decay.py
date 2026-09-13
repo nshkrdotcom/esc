@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 import numpy as np
 from pydantic import BaseModel
 from scipy import stats
@@ -43,7 +44,10 @@ def fit_horizon_decay(
             fitted_probs={d: accuracies_by_depth[d] for d in depths},
         )
 
-    slope, intercept, r_value, p_value, std_err = stats.linregress(x, log_probs)
+    if np.all(log_probs == log_probs[0]):
+        slope, intercept, r_value, std_err = 0.0, float(log_probs[0]), 0.0, 0.0
+    else:
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, log_probs)
 
     beta = -float(slope)
     alpha = float(intercept)
