@@ -3,6 +3,8 @@
 Use `--episode-token-budget N --no-mock` to enable policy
 `soft_generation_reservation_v1`. The default remains unmetered. This is a
 **soft allowance, not a hard total-token cap or a compute-matched study**.
+Episode and generation allowances must be positive integers; invalid programmatic
+values such as booleans or fractional tokens are rejected before dispatch.
 
 Each task/condition/outer repetition owns a fresh locked ledger in DSPy context.
 All B rollouts and C steps share it, including recursive threads, extraction,
@@ -40,7 +42,10 @@ reservations, unknown reserved consumption, dispatched/blocked calls, and termin
 flags. Runner token totals come from the ledger, including interrupted work.
 Unknown consumption after a request failure is **not** represented as measured
 tokens or refunded. Backend/accounting failures still invalidate the batch and
-write `failure.json` with its ledger. Ordinary malformed output and non-budget
+write `failure.json` with its ledger. Malformed response metadata also marks the
+request's consumption unknown and settles its pending reservation conservatively.
+Original provider errors and explicit cancellation/Ctrl-C are preserved, rather
+than being replaced by budget checks during cleanup. Ordinary malformed output and non-budget
 truncation retain existing failure behavior; they are not automatically reclassified
 as exhaustion. Raw events retain available provider output and finish reasons.
 DSPy callback `lm_start` events include blocked attempts. Responses rejected by

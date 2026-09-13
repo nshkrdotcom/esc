@@ -2,7 +2,7 @@
 
 This report records the earlier runtime milestone; its 69-test count and
 configuration smoke result are historical. [HANDOFF.md](../HANDOFF.md) records
-the current 94-test validation, shared soft allowance, and pending work.
+the current offline validation, shared soft allowance, and pending work.
 
 ## Cause and verification
 

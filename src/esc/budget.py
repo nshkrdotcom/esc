@@ -4,6 +4,7 @@ No preflight prompt tokenizer and no hard total-token or overshoot bound is clai
 DSPy copies context into recursive threads; the ledger reference must stay shared.
 """
 from threading import Lock
+from collections.abc import Mapping
 import dspy
 
 
@@ -17,8 +18,8 @@ class BudgetAccountingError(RuntimeError):
 
 class EpisodeLedger:
     def __init__(self, budget: int):
-        if budget < 1:
-            raise ValueError("Episode budget must be positive")
+        if type(budget) is not int or budget < 1:
+            raise ValueError("Episode budget must be a positive integer")
         self.budget = budget
         self.lock = Lock()
         self.pending = {}
@@ -29,6 +30,8 @@ class EpisodeLedger:
         self.failed = False
 
     def reserve(self, generation):
+        if type(generation) is not int or generation < 1:
+            raise ValueError("Generation allowance must be a positive integer")
         with self.lock:
             if self.failed:
                 raise BudgetAccountingError("Prior request has unknown consumption")
@@ -46,7 +49,8 @@ class EpisodeLedger:
     def commit(self, handle, usage, budget_truncated=False):
         with self.lock:
             cap = self.pending.pop(handle)
-            values = [usage.get(k) for k in ("prompt_tokens", "completion_tokens")]
+            values = ([usage.get(k) for k in ("prompt_tokens", "completion_tokens")]
+                      if isinstance(usage, Mapping) else [None, None])
             if any(type(v) is not int or v < 0 for v in values) or sum(values) == 0:
                 self.failed = True
                 self.unknown_reserved += cap
@@ -86,6 +90,21 @@ def current_ledger():
 
 
 class BudgetedLM(dspy.LM):
+    @staticmethod
+    def _complete(ledger, handle, response, reduced):
+        # Parsing provider metadata can fail before commit. Mark that request's
+        # consumption unknown too, so the REPL cannot hide the accounting error.
+        try:
+            usage = dict(response.get("usage") or {})
+            truncated = reduced and any(
+                c.get("finish_reason") == "length" for c in (response.get("choices") or [])
+            )
+        except Exception as exc:
+            ledger.fail(handle)
+            raise BudgetAccountingError("Malformed provider usage/response metadata") from exc
+        ledger.commit(handle, usage, truncated)
+        ledger.check()
+
     def _reserve(self, kwargs):
         ledger = current_ledger()
         if ledger is None:
@@ -106,9 +125,7 @@ class BudgetedLM(dspy.LM):
                 ledger.fail(handle)
             raise
         if ledger:
-            ledger.commit(handle, dict(response.get("usage") or {}),
-                          reduced and any(c.get("finish_reason") == "length" for c in response.get("choices", [])))
-            ledger.check()
+            self._complete(ledger, handle, response, reduced)
         return response
 
     async def aforward(self, prompt=None, messages=None, **kwargs):
@@ -120,7 +137,5 @@ class BudgetedLM(dspy.LM):
                 ledger.fail(handle)
             raise
         if ledger:
-            ledger.commit(handle, dict(response.get("usage") or {}),
-                          reduced and any(c.get("finish_reason") == "length" for c in response.get("choices", [])))
-            ledger.check()
+            self._complete(ledger, handle, response, reduced)
         return response

@@ -176,3 +176,83 @@ def test_c_keeps_audit_when_budget_stops_next_step(monkeypatch):
     assert result.budget_exhausted and result.abstained
     assert result.intermediate_answers == {'N1': first.true_value}
     assert len(result.details['audit_log']) == 2
+
+
+@pytest.mark.parametrize('invalid', [0, -1, True, 1.5, float('nan'), None])
+def test_invalid_allowances_cannot_mutate_ledger(invalid):
+    with pytest.raises(ValueError, match='positive integer'):
+        EpisodeLedger(invalid)
+    ledger = EpisodeLedger(10)
+    with pytest.raises(ValueError, match='positive integer'):
+        ledger.reserve(invalid)
+    assert ledger.snapshot()['calls_dispatched'] == 0
+    assert ledger.snapshot()['pending_reserved'] == 0
+
+
+@pytest.mark.parametrize('asynchronous', [False, True])
+@pytest.mark.parametrize('response', [None, {'usage': 'malformed'}, {'usage': {}}])
+def test_malformed_response_durably_invalidates_accounting(monkeypatch, asynchronous, response):
+    def reply(*a, **k):
+        return response
+    async def async_reply(*a, **k):
+        return response
+    monkeypatch.setattr(dspy.LM, 'forward', reply)
+    monkeypatch.setattr(dspy.LM, 'aforward', async_reply)
+    ledger = EpisodeLedger(100)
+    with dspy.context(esc_ledger=ledger):
+        with pytest.raises(BudgetAccountingError):
+            if asynchronous:
+                asyncio.run(lm().aforward(prompt='x'))
+            else:
+                lm().forward(prompt='x')
+        with pytest.raises(BudgetAccountingError):
+            ledger.reserve(1)
+    assert ledger.snapshot()['unknown_reserved'] == 10
+    assert ledger.snapshot()['pending_reserved'] == 0
+    assert ledger.snapshot()['measured_tokens'] == 0
+
+
+@pytest.mark.parametrize('error', [KeyboardInterrupt(), SystemExit(), asyncio.CancelledError()])
+def test_worker_cancellation_is_not_replaced_by_exhaustion(error):
+    ledger = EpisodeLedger(5)
+    handle, _ = ledger.reserve(5)
+    ledger.commit(handle, {'prompt_tokens': 5, 'completion_tokens': 1})
+    class Worker:
+        def forward(self):
+            raise error
+    with dspy.context(esc_ledger=ledger), pytest.raises(type(error)) as caught:
+        invoke_with_usage(Worker())
+    assert caught.value is error
+
+
+def test_runner_preserves_original_provider_error(tmp_path, monkeypatch):
+    import json
+    from esc.runner import run_experiment_1
+    from esc.systems.system_a import SystemAContinuous
+    original = RuntimeError('provider connection lost')
+    def fail(*a, **k):
+        raise original
+    monkeypatch.setattr(dspy.LM, 'forward', fail)
+    model = lm()
+    class Worker:
+        def forward(self):
+            model.forward(prompt='x')
+    monkeypatch.setattr(SystemAContinuous, 'run', lambda *a: invoke_with_usage(Worker()))
+    with pytest.raises(RuntimeError) as caught:
+        run_experiment_1(depths=[2], tasks_per_depth=1, repetitions=1, use_mock=False,
+                         sub_lm=model, episode_token_budget=100, output_dir=tmp_path)
+    assert caught.value is original
+    record = json.loads((tmp_path/'failure.json').read_text())
+    assert record['error_type'] == 'RuntimeError'
+    assert record['error'] == 'provider connection lost'
+    assert record['ledger']['unknown_reserved'] == 10
+    assert not (tmp_path/'experiment_1_summary.json').exists()
+
+
+@pytest.mark.parametrize('invalid', [True, 1.5])
+def test_runner_rejects_noninteger_allowance_before_artifacts(tmp_path, invalid):
+    from esc.runner import run_experiment_1
+    with pytest.raises(ValueError, match='positive integer'):
+        run_experiment_1(use_mock=False, sub_lm=lm(), episode_token_budget=invalid,
+                         output_dir=tmp_path)
+    assert not list(tmp_path.iterdir())

@@ -42,6 +42,9 @@ The [runbook](docs/RUNBOOK.md) contains the live pilot command. Defaults use unc
 Completed episodes are flushed to `runs.jsonl`, including available trajectories and C's audit records. The output directory also includes a reproducible task corpus, manifest, and a summary on successful completion. Existing runs cannot be overwritten. Failed runs retain completed episodes but do not automatically resume.
 
 The summary reports accuracy, repeated success, abstention, measured tokens, and descriptive horizon fits. Unsupported/inapplicable EPC and false-promotion metrics are N/A. H₁ remains untested until compute matching and benchmark controls are implemented.
+The exported `check_hypothesis_h1` helper also leaves `h1_supported=None`; it only
+compares point estimates on matching depth grids. Ratios are omitted for
+nonpositive slopes or incomparable depth grids and do not establish significance.
 
 For the default legacy family, `--depths 2,4,8,16` selects node counts with actual depths 2, 4, 7, and 15. The new `--benchmark relational_v2` family has exact depths 2/4/8/16, fixed corpus size across paired depths, opaque shuffled sources, and full corpus access for every condition. It controls relational dependency depth; broader semantic reasoning and matched compute remain untested. See [the relational benchmark](docs/RELATIONAL_BENCHMARK.md).
 

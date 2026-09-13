@@ -8,7 +8,15 @@ def invoke_with_usage(worker, **inputs):
     with track_usage() as tracker:
         try:
             prediction = worker(**inputs) if isinstance(worker, Module) else worker.forward(**inputs)
-        finally:
+        except Exception:
+            # Preserve provider/accounting failures. Only translate recoverable
+            # worker errors when the durable ledger says budget exhaustion.
+            # BaseException (Ctrl-C, cancellation, SystemExit) must pass through.
+            ledger = current_ledger()
+            if ledger and not ledger.snapshot()["accounting_failed"]:
+                ledger.check()
+            raise
+        else:
             ledger = current_ledger()
             if ledger:
                 ledger.check()

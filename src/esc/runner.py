@@ -91,8 +91,9 @@ def run_experiment_1(
         raise ValueError("Legacy benchmark has no split isolation; use relational_v2")
     rlm_config = rlm_config or RLMConfig()
     if episode_token_budget is not None:
-        if episode_token_budget < 1 or use_mock or not isinstance(sub_lm, BudgetedLM):
-            raise ValueError("Episode budget requires positive allowance and a live BudgetedLM")
+        if (type(episode_token_budget) is not int or episode_token_budget < 1
+                or use_mock or not isinstance(sub_lm, BudgetedLM)):
+            raise ValueError("Episode budget requires a positive integer allowance and a live BudgetedLM")
     if n_samples < 1:
         raise ValueError("n_samples must be positive")
     if reflection_lm is not None:
@@ -119,7 +120,8 @@ def run_experiment_1(
     if out_path:
         out_path.mkdir(parents=True, exist_ok=True)
         if any((out_path / name).exists() for name in
-               ("experiment_1_summary.json", "runs.jsonl", "manifest.json")):
+               ("experiment_1_summary.json", "experiment_1_summary.json.tmp",
+                "runs.jsonl", "manifest.json", "tasks.json", "events.jsonl", "failure.json")):
             raise FileExistsError(f"Run artifacts already exist in {out_path}; choose a new output directory")
         with (out_path / "manifest.json").open("x") as handle:
             json.dump(configuration, handle, indent=2, allow_nan=False)

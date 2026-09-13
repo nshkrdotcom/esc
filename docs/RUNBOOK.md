@@ -71,6 +71,8 @@ For an offline harness exercise, replace `--no-mock` with `--mock` and select a 
 ## Artifacts and failures
 
 Each output directory belongs to one run. Existing run artifacts cause an error rather than being overwritten.
+This includes orphaned task, event, failure, and temporary-summary files even if
+the manifest is missing. Select a new directory; preserve the old evidence.
 
 - `manifest.json`: model, safe sampling settings, seed, versions, configuration and limitations.
 - `tasks.json`: reproducible corpus, public task instructions and evaluator labels. Only public inputs reach live workers.

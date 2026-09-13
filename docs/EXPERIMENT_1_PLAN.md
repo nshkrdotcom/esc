@@ -48,7 +48,7 @@ generation only and reconciles measured prompt costs. It does not implement the
 validated preflight tokenizer below, claim bounded overshoot, or clear the
 matched-compute gate. The following remains the stricter study target.
 
-The 94-test suite and generous live allowance check pass. The binding live check
+The 119-test suite and earlier generous live allowance check pass. The binding live check
 is pending. Callback events cannot independently attribute every rejected or
 concurrent response; add a provider-boundary request journal and reconcile it
 against ledger totals before claiming fully audited live enforcement. See the

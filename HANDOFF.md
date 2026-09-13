@@ -56,8 +56,13 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
   interception; generation reservations; measured prompt reconciliation; shared
   B rollouts/C steps; durable exhaustion after swallowed REPL errors; partial B
   votes and C audit preservation; runner continues exhausted episodes.
-- `ESC_TEST_RLM=1 uv run pytest -q`: **94 passed**. Includes an actual scripted
+- `ESC_TEST_RLM=1 uv run pytest -q`: **119 passed**. Includes an actual scripted
   Deno/Pyodide recursive-call exhaustion test; no inference needed for these tests.
+- Final preparation fixes preserve Ctrl-C/cancellation and original provider
+  diagnostics, reject noninteger allowances before dispatch, mark malformed usage
+  as unknown consumption, and reject orphaned output artifacts. The exported
+  `check_hypothesis_h1` helper now explicitly returns `h1_supported=None`; its
+  optional point-estimate comparison is descriptive only.
 - Nonbinding live check `outputs/budget_generous_001`: one development depth-2
   world, one outer repeat, allowance 100,000 per condition. A/B/C measured
   **16,932 / 47,208 / 4,874 tokens**, with 5/13/2 dispatched calls. A/B correct;
@@ -186,7 +191,7 @@ criterion; valid negative or inconclusive results can close the study.
 ## Handoff audit
 
 The handoff was checked against code, saved local artifacts, the CLI help, and a
-fresh offline run of all 94 tests. The versioned generous-budget snapshot matches
+fresh offline run of all 119 tests. The versioned generous-budget snapshot matches
 its saved manifest and all three result/ledger records exactly. Internal document
 file links resolve. No live experiment was started during this audit, and the
 binding check remains unrun. Stale failure semantics, legacy-depth wording, and

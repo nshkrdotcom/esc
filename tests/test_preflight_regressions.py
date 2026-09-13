@@ -165,6 +165,16 @@ def test_runner_preserves_completed_episode_on_failure(tmp_path, monkeypatch):
     assert not (tmp_path / 'experiment_1_summary.json').exists()
 
 
+@pytest.mark.parametrize('name', ['events.jsonl', 'failure.json', 'tasks.json', 'experiment_1_summary.json.tmp'])
+def test_runner_preserves_orphaned_artifacts(tmp_path, name):
+    artifact = tmp_path / name
+    artifact.write_text('earlier run evidence')
+    with pytest.raises(FileExistsError):
+        run_experiment_1(depths=[2], tasks_per_depth=1, repetitions=1, output_dir=tmp_path)
+    assert artifact.read_text() == 'earlier run evidence'
+    assert not (tmp_path / 'manifest.json').exists()
+
+
 @pytest.mark.parametrize('value,target,expected', [('3.0000','3.0',True),('3.01','3',False),('TRUE','true',True),('nan','nan',False)])
 def test_answer_normalization(value, target, expected):
     assert answers_equal(value,target) is expected

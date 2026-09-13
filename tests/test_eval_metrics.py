@@ -28,8 +28,17 @@ def test_horizon_decay_fit():
     decay_steep = fit_horizon_decay(accuracies_steep, "SteepSystem")
 
     h1 = check_hypothesis_h1(decay_c=decay, decay_a=decay_steep)
-    assert h1["h1_supported"] is True
+    assert h1["h1_supported"] is None
+    assert h1["descriptive_beta_c_lower"] is True
     assert h1["beta_C"] < h1["beta_A"]
+
+
+@pytest.mark.parametrize('accuracies', [{2: 0.5}, {2: 0.5, 4: 0.5}, {2: 0.2, 4: 0.8}])
+def test_descriptive_comparison_does_not_invent_ratio(accuracies):
+    decay = fit_horizon_decay(accuracies, 'C')
+    comparison = check_hypothesis_h1(decay, fit_horizon_decay({2: 0.8, 4: 0.2}, 'A'))
+    assert comparison['h1_supported'] is None
+    assert comparison['beta_ratio_A_over_C'] is None
 
 
 def test_gepa_metric_feedback():

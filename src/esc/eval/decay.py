@@ -70,23 +70,22 @@ def check_hypothesis_h1(
     decay_c: HorizonDecayResult,
     decay_a: HorizonDecayResult,
 ) -> dict[str, Any]:
-    """Test hypothesis H1: |d log P / d d|_isolated < |d log P / d d|_continuous.
+    """Legacy helper name; compare descriptive slopes without testing H1.
 
-    Equivalently: beta_C < beta_A.
+    These fits contain neither matched-cost evidence nor paired uncertainty.
+    A point-estimate ordering cannot establish support for the hypothesis.
     """
     beta_c = decay_c.beta
     beta_a = decay_a.beta
-    h1_supported = beta_c < beta_a
-    ratio = beta_a / max(1e-6, beta_c)
+    comparable = (len(decay_c.accuracies_by_depth) >= 2
+                  and decay_c.accuracies_by_depth.keys() == decay_a.accuracies_by_depth.keys())
+    ratio = beta_a / beta_c if comparable and beta_a > 0 and beta_c > 0 else None
 
     return {
-        "h1_supported": h1_supported,
+        "h1_supported": None,
+        "descriptive_beta_c_lower": beta_c < beta_a if comparable else None,
         "beta_C": beta_c,
         "beta_A": beta_a,
         "beta_ratio_A_over_C": ratio,
-        "interpretation": (
-            f"Condition C decays {ratio:.2f}x slower than Condition A per depth unit."
-            if h1_supported
-            else "Condition C did not outperform Condition A in horizon decay."
-        ),
+        "interpretation": "Not tested: descriptive slopes do not establish matched compute or statistical support.",
     }
