@@ -1,16 +1,19 @@
 # Experiment 1: implementation gates and research fidelity
 
+[HANDOFF.md](../HANDOFF.md) is the operational entry point: exact pending command,
+current evidence, completion boundaries, and file-level implementation checklist.
+
 ## Audit of the proposed study
 
 The runtime and first controlled-domain benchmark milestones are complete; the confirmatory study is not. The legacy and relational development smoke checks each contain one task and one outer repetition. They cannot estimate horizon decay, pass⁵, EPCₖ, ablation effects, or confidence intervals. No GEPA compile or Flex search has occurred. There is no basis for a numeric percentage-complete claim: the execution framework is working, but the experimental controls are the central remaining work.
 
-| Requirement | Before this change | Gate |
+| Requirement | Current status | Gate |
 |---|---|---|
 | Fresh RLM + typed projected state + separate audit | Implemented and interpreter-tested | M0 complete |
 | Local serving, provider tokens, failure diagnostics | Live validated | M0 complete |
-| 90-second research entry point | Missing | Root RESEARCH_NOTE.md added |
-| Comparable tasks at actual depths 2/4/8/16 | Legacy family confounded | M1 below |
-| Equal information without answer-aware source routing | Legacy source selection confounded | M1 below |
+| 90-second research entry point | Root RESEARCH_NOTE.md implemented | Complete; figures pending |
+| Comparable tasks at actual depths 2/4/8/16 | Exact relational depth implemented; broader semantic depth untested | M1 complete within scope |
+| Equal information without answer-aware source routing | Full corpus access in relational_v2; legacy remains confounded | M1 complete within scope |
 | Shared episode accounting | Soft allowance implemented; hard/matched policy pending | M2 partial |
 | Matched live A/B/C intervention | Not implemented | M3 |
 | Faithful primitive ablations | Partial names/behaviors only | M4 |
@@ -44,6 +47,12 @@ Validation: 83 tests passed with the opt-in Deno interpreter test enabled. The l
 generation only and reconciles measured prompt costs. It does not implement the
 validated preflight tokenizer below, claim bounded overshoot, or clear the
 matched-compute gate. The following remains the stricter study target.
+
+The 94-test suite and generous live allowance check pass. The binding live check
+is pending. Callback events cannot independently attribute every rejected or
+concurrent response; add a provider-boundary request journal and reconcile it
+against ledger totals before claiming fully audited live enforcement. See the
+[handoff acceptance criteria](../HANDOFF.md).
 
 Implement one accounting owner around the actual LM backend, shared by root/subcalls, all C steps, and all B rollouts. Do not implement independent per-step caps and call them a matched episode budget.
 

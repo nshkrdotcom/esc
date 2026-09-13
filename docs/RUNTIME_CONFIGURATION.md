@@ -1,5 +1,9 @@
 # Local runtime configuration fix
 
+This report records the earlier runtime milestone; its 69-test count and
+configuration smoke result are historical. [HANDOFF.md](../HANDOFF.md) records
+the current 94-test validation, shared soft allowance, and pending work.
+
 ## Cause and verification
 
 The original imported Qwen3-14B template left the generation prefix inside an open `<think>` block. The CLI's `reasoning_effort="none"` correctly became Ollama's `think=false`, but the prompt still triggered reasoning. A direct request to return only `4` for `2+2` consumed all 128 allowed tokens without answering.

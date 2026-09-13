@@ -43,6 +43,12 @@ tokens or refunded. Backend/accounting failures still invalidate the batch and
 write `failure.json` with its ledger. Ordinary malformed output and non-budget
 truncation retain existing failure behavior; they are not automatically reclassified
 as exhaustion. Raw events retain available provider output and finish reasons.
+DSPy callback `lm_start` events include blocked attempts. Responses rejected by
+the wrapper may not enter DSPy history; their callback usage can be absent. Under
+concurrency the history-based callback cannot attribute each response reliably.
+Ledger snapshots remain the accounting source. A separate per-request journal at
+the provider boundary is pending for independent reconciliation; aggregate
+snapshots and callback counts alone do not supply that audit.
 
 Example development check (choose an unused output directory):
 

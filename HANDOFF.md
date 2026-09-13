@@ -2,6 +2,11 @@
 
 ## Start here
 
+**Completion boundary:** the implementation and handoff are ready for the next
+development validation. The confirmatory experiment is not complete. M0/M1 are
+complete, initial M2 code is complete and offline-tested, live M2 exhaustion
+validation and the matched-cost policy are pending, and M3–M5 are not implemented.
+
 The shared **soft** episode allowance is implemented and offline-tested. Experiment
 1 is still a development pipeline, not a valid H₁ study. Do not start a large
 sweep, GEPA, or publish comparative claims yet. No experiment is running at this
@@ -65,6 +70,7 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
 
 ## Exact next commands
 
+Run from the repository root (this workstation: `/home/home/p/g/n/esc`).
 Use `uv` exclusively for Python. The local Ollama model alias is
 `esc-qwen3:14b-nothink`; setup is in [RUNTIME_CONFIGURATION.md](docs/RUNTIME_CONFIGURATION.md).
 Do not substitute another model/template silently. Deno is required for RLM.
@@ -72,7 +78,17 @@ Do not substitute another model/template silently. Deno is required for RLM.
 ```bash
 uv sync --locked
 ESC_TEST_RLM=1 uv run pytest -q
+uv run esc run --help
 ollama list
+```
+
+If the alias is missing, follow the runtime setup before proceeding. Merely
+running `ollama list` does not assert that the required alias exists. Do not pull
+weights or launch inference as part of a documentation/offline check.
+
+When ready for the pending live check:
+
+```bash
 uv run esc run --benchmark relational_v2 --split dev --depths 2 \
   --tasks-per-depth 1 --repetitions 1 --no-mock \
   --episode-token-budget 1000 --output-dir outputs/budget_binding_001
@@ -84,20 +100,31 @@ policy, not proof of hard enforcement. Use a fresh output directory if that name
 exists. The runner rejects overwrites and has **no resume command**.
 
 Check `experiment_1_summary.json`, `runs.jsonl`, `events.jsonl`, and any
-`failure.json`. Accept only if all three episodes are persisted, at least one
-exhausts, no call starts after durable exhaustion (already-dispatched concurrent
-requests may finish), measured tokens reconcile, pending/unknown reservations are
-zero, and the sweep finishes. Inspect budget-reduced truncation handling. Preserve
+`failure.json`. Accept this initial check only if all three episodes are persisted,
+at least one exhausts, ledger arithmetic reconciles, pending/unknown reservations
+are zero, and the sweep finishes. Inspect budget-reduced truncation handling. Preserve
 failures; do not retry until success and omit the earlier attempt. Add a compact
 evidence snapshot and update this handoff after validation.
 
+**Telemetry limitation:** `lm_start` means a DSPy call attempt, not backend dispatch.
+Blocked attempts can emit it. Usage from a response rejected by the budget wrapper
+may never enter DSPy history, so its `lm_end` may lack usage. Concurrent callbacks
+also infer usage from shared LM history, which cannot reliably attribute each call.
+Use ledger aggregates as the accounting source, and do not claim that counting
+`lm_start`/`lm_end` proves absence of dispatch or independently reconciles every
+charged call. Offline wrapper tests verify dispatch blocking. Add a per-request
+provider-boundary journal before claiming independent live auditability at M2.
+
 ## Granular remaining roadmap, in order
 
-1. **M2 validation:** run the binding check; compare ledger prompt/completion totals
-   with available provider events and the nonbinding worker usage records. Confirm
-   root, recursive and extraction paths are counted once. Diagnose discrepancies
-   before further runs. Backend/unknown-usage failures invalidate a batch, while
-   exhaustion is a recorded episode outcome. B may retain a correct completed vote.
+1. **M2 validation:** run the binding check and inspect ledger arithmetic against
+   available provider data and nonbinding worker usage. Then add a provider-boundary
+   journal containing reservation/request ID, capped generation, response usage,
+   finish reason and terminal outcome, including rejected responses. Test concurrent
+   attribution and independent reconciliation with the ledger. Confirm root,
+   recursive and extraction paths are counted once. Diagnose discrepancies before
+   further runs. Backend/unknown-usage failures invalidate a batch, while exhaustion
+   is a recorded episode outcome. B may retain a correct completed vote.
 2. **M2 study policy:** choose and freeze an acceptable cost allocation policy on
    development worlds. Current policy reserves generation only; prompt overshoot
    has no guaranteed bound. Investigate a validated exact-template tokenizer or
@@ -137,6 +164,35 @@ evidence snapshot and update this handoff after validation.
 10. **Only after valid fixed-architecture results:** implement D/GEPA with saved
     programs and disjoint train/validation/test worlds; account reflection cost
     separately. Flex boundary search and external-corpus replication follow.
+
+## Where the next implementation work belongs
+
+| Gate | Main files / new deliverable | Required evidence before closing |
+|---|---|---|
+| M2 accounting and validation | `src/esc/budget.py`, `src/esc/telemetry.py`, `src/esc/workers/usage.py`; `tests/test_budget.py`, `tests/test_rlm_integration.py` | Nonbinding and binding records; independently reconcilable request journal; concurrency and swallowed-error regressions |
+| M2 outcomes and policy | `src/esc/runner.py`, `src/esc/cli.py`, `src/esc/systems/system_a.py`, `src/esc/systems/system_b.py`, `src/esc/systems/system_c.py`; versioned budget policy | No dropped exhausted episodes; correct partial-vote/audit semantics; documented allocation and cost-matching acceptance criterion |
+| M3 intervention | New intervention module plus worker/RLM hooks and result fields | Same public intervention across architectures, clean/intervened pairs, reached-site denominators, no evaluator leakage |
+| M4 ablations | Explicit architecture configurations and context-capture tests | Each of the five variants in the research note actually receives the advertised history/state/witness inputs |
+| M5 study execution | Runner scheduling/integrity checks and frozen study manifest | Complete held-out groups with at least five outer repeats; no completed-prefix selection; recorded model and corpus identity |
+| M5 analysis | New offline analysis/figure command; extend `src/esc/eval/` | Reproducible world-cluster intervals, four figures, machine-readable counts/costs and a real paired trace |
+| Post-Experiment 1 | `src/esc/systems/system_d.py`, saved optimizer artifacts, external dataset adapters | No stub called optimized; split isolation and reflection cost measured; dataset versions and protocols verified |
+
+Paths in this table are relative to the repository root. Future deliverables have
+no working CLI command yet; do not infer commands from their planned names. Each gate requires
+a small tested patch, an updated status/evidence record, and a reviewable working
+tree before beginning the next gate. Hypothesis support is never a completion
+criterion; valid negative or inconclusive results can close the study.
+
+## Handoff audit
+
+The handoff was checked against code, saved local artifacts, the CLI help, and a
+fresh offline run of all 94 tests. The versioned generous-budget snapshot matches
+its saved manifest and all three result/ledger records exactly. Internal document
+file links resolve. No live experiment was started during this audit, and the
+binding check remains unrun. Stale failure semantics, legacy-depth wording, and
+unsupported external-benchmark assumptions were corrected. Provider-boundary
+auditability remains an explicit pending deliverable rather than an inferred
+property of callback logs.
 
 ## Working rules for the next agent
 

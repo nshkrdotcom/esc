@@ -2,6 +2,10 @@
 
 Read [the pre-experiment review](PREFLIGHT_REVIEW.md) before running. The current implementation supports a pipeline pilot across A/B/C. Matched-compute inference, live EPCₖ comparisons, GEPA compilation, and the full ablation study remain unfinished.
 
+For the exact next pending check and current pause state, start with
+[HANDOFF.md](../HANDOFF.md). The larger legacy pilot below is a reproduction
+example, not the next scheduled run.
+
 For the next Experiment 1 development stage, select `--benchmark relational_v2 --split dev`. This opt-in family has exact requested depth and equal corpus access; see [RELATIONAL_BENCHMARK.md](RELATIONAL_BENCHMARK.md) and the [implementation gates](EXPERIMENT_1_PLAN.md). Commands below without this flag reproduce the legacy runtime pilot, not the controlled-depth benchmark.
 
 ## Offline preparation
@@ -71,13 +75,13 @@ Each output directory belongs to one run. Existing run artifacts cause an error 
 - `manifest.json`: model, safe sampling settings, seed, versions, configuration and limitations.
 - `tasks.json`: reproducible corpus, public task instructions and evaluator labels. Only public inputs reach live workers.
 - `runs.jsonl`: one flushed record per completed episode, repetition ID, measured usage, and available audit/trajectory data. B stores its constituent rollout records.
-- `events.jsonl`: flushed episode starts/ends, LM starts/ends with raw outputs, usage and finish reasons, and interpreter outputs. It retains diagnostics for a failed or interrupted episode; `finish_reasons: ["length"]` identifies output truncation.
+- `events.jsonl`: flushed episode starts/ends, LM attempts/ends with available raw outputs, usage and finish reasons, interpreter outputs, and budget snapshots when enabled. A logged LM attempt may be blocked before dispatch; rejected-response usage and concurrent per-call attribution have [limitations](EPISODE_BUDGET.md). Available `finish_reasons: ["length"]` identifies output truncation.
 - `experiment_1_summary.json`: overall and per-depth vectors and descriptive fits, written on successful completion.
-- `failure.json`: task, condition, repetition, and exception if an episode fails or is interrupted with Ctrl-C. The exception is re-raised and the run stops.
+- `failure.json`: task, condition, repetition, exception and optional ledger snapshot if a backend/accounting failure or interruption stops the run. Budget exhaustion is instead recorded in `runs.jsonl` and the sweep continues.
 
 There is no automatic resume. Earlier completed episodes remain readable after failure; use a new directory for another run. No summary means the run did not finish. Unmeasured/inapplicable metrics display N/A. H₁ is explicitly untested.
 
-`--depths` retains the original CLI name but selects nominal task sizes; measured dependency depths are 2, 4, 7, and 15. See [EpiDAG limitations](EPIDAG_BENCHMARK.md).
+For the default `legacy` family, `--depths` selects nominal task sizes with measured dependency depths 2, 4, 7, and 15. For `relational_v2` it selects exact depths 2, 4, 8, and 16. See [legacy limitations](EPIDAG_BENCHMARK.md) and [relational controls](RELATIONAL_BENCHMARK.md).
 
 ## Deferred stages
 

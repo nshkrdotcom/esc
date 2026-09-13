@@ -36,7 +36,9 @@ There is **no controlled result table yet**. Dashes denote unmeasured outcomes, 
 
 **New benchmark compatibility check:** one `relational_v2` development task at depth 2, one outer repeat, completed in all three conditions. A and B answered correctly; C abstained after its generated parser repeatedly found no rows. A/B/C used 11,822 / 48,763 / 14,426 tokens and 36.6 / 160.4 / 42.3 seconds. B's three rollouts required final extraction after reaching the iteration limit. These unequal-cost episodes are not headline results. A compact [evidence snapshot](docs/evidence/relational_v2_validation_001.json) accompanies the code; full local traces remain in ignored `outputs/relational_v2_validation_001/`.
 
-Neither smoke check establishes a Pareto winner or a reliability effect. Neither has repeated-trial uncertainty. C's abstention is a failed task, not an observed containment benefit.
+**Shared-ledger compatibility check:** one further depth-2 development task run used a nonbinding allowance of 100,000 tokens per condition. A/B/C spent 16,932 / 47,208 / 4,874 tokens; A/B were correct and C was incorrect. All reservations settled with no exhaustion or unknown usage. The [saved snapshot](docs/evidence/budget_generous_001.json) supports these accounting observations. Live binding-budget validation is still pending; the [handoff](HANDOFF.md) states the precise next steps.
+
+These smoke checks establish neither a Pareto winner nor a reliability effect. None has repeated-trial uncertainty. C's abstention is a failed task, not an observed containment benefit.
 
 ## The four figures that will decide the claim
 

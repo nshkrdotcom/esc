@@ -1,51 +1,47 @@
-# External Benchmark Replication Guide
+# External benchmark replication — deferred plan
 
-Following initial verification on the synthetic EpiDAG benchmark, the ESC architecture can be ported to external real-world benchmarks to evaluate external validity.
+No external benchmark adapter or run is implemented. This is a planning document,
+not a claim about verified dataset availability, publication metadata, or measured
+replication results. Complete the fixed-architecture study gates in
+[EXPERIMENT_1_PLAN.md](EXPERIMENT_1_PLAN.md) first.
 
----
+## Purpose
 
-## 1. BrowseComp-Plus (ACL 2026)
+The synthetic relational family tests a narrow, deterministically checkable task.
+External replication should ask whether any observed effect survives richer
+retrieval, semantic ambiguity, and tool use. It must retain the thesis's controls:
+the same model, available information, and defensibly comparable inference cost.
 
-### Why BrowseComp-Plus?
-Ordinary BrowseComp relies on dynamic web environments where websites change, search results fluctuate, and rate limits hinder reproducibility.
+## Candidate families and prerequisites
 
-**BrowseComp-Plus** (published at ACL 2026) addresses this by pairing questions with a **fixed, human-verified web corpus**. This provides:
-- A standardized, static text corpus ($C$).
-- Multi-hop retrieval and reasoning dependencies.
-- Perfect disentanglement between agent reasoning and network variance.
+A fixed-corpus retrieval benchmark, with BrowseComp-Plus as a candidate to evaluate,
+could reduce changes in the available evidence between runs. Before choosing it,
+verify the primary dataset documentation, exact release/version, license, corpus
+access, labels, scoring, and retrieval protocol. A fixed corpus alone does not
+eliminate differences in retrieval policy or task difficulty. No publication year
+or venue is asserted here without verification.
 
-### RLM Formulation on BrowseComp-Plus:
-```python
-import dspy
-from esc.core.types import Fact, StepResult
-from esc.workers.epistemic import EpistemicWorker
+GAIA is another candidate for external validity after supported tools/modalities
+are implemented. Difficulty labels and tool-call counts are not measured dependency
+depth. Do not assign numerical depths to its levels or use them directly as the
+x-axis of a horizon-decay fit. Either annotate and validate an actual dependency
+structure or report difficulty-stratified accuracy without claiming depth scaling.
 
-class BrowseCompStep(dspy.Signature):
-    """Resolve one retrieval and deduction step over the BrowseComp-Plus corpus."""
-    goal: str = dspy.InputField()
-    accepted_facts: list[Fact] = dspy.InputField()
-    corpus: str = dspy.InputField(desc="Fixed human-verified document corpus")
-    
-    result: StepResult = dspy.OutputField()
-```
+## Implementation and acceptance steps
 
-### Comparison Suite:
-1. **Monolithic RLM**: Entire corpus loaded into external variable space; single continuous trajectory.
-2. **Search-Heavy RLM**: Continuous RLM evaluated over $N$ parallel rollouts (Best-of-$N$).
-3. **ESC Epistemic RLM**: Step-by-step dependency resolution with canonical fact persistence and amnesia.
-4. **GEPA-Optimized ESC**: Epistemic boundaries tuned with reflective error feedback.
+1. Freeze a verified dataset version and retrieval/tool protocol, with hashes and
+   explicit split ownership. Keep evaluator labels out of runtime tools.
+2. Build a reproducible adapter and score a reference fixture before model runs.
+   Record unavailable evidence and tool failures; do not silently discard tasks.
+3. Give A/B/C equal corpus/tool access and apply the validated episode cost policy.
+   Keep decomposition and source filtering visible as controlled variables.
+4. Run a small development compatibility check before choosing a held-out sample.
+   Use repeated trials, paired comparisons, and reported coverage/cost.
+5. Compare final reliability, repeatability, and intervention outcomes only where
+   the task structure supports those measurements. Report limitations or negative
+   replication results without extrapolating the synthetic slope.
+6. Add optimized D only after GEPA exists and training/test separation and reflection
+   costs are recorded. Structural boundary discovery remains a later experiment.
 
----
-
-## 2. GAIA Benchmark (General AI Assistants)
-
-### Why GAIA?
-GAIA evaluates multimodal and tool-use capabilities across three distinct difficulty levels:
-- **Level 1**: Short horizon (1–3 tool calls).
-- **Level 2**: Medium horizon (4–8 tool calls).
-- **Level 3**: Long horizon (9+ chained tool executions).
-
-The three difficulty levels map directly onto our depth variable $d$:
-$$d_{\text{Level 1}} \approx 2, \quad d_{\text{Level 2}} \approx 6, \quad d_{\text{Level 3}} \ge 10$$
-
-This allows testing whether the horizon decay curve $\log P(\text{success}) = \alpha - \beta d$ observed on EpiDAG replicates on multi-modal tool-use agents.
+No commands are provided because these integrations do not exist yet. The current
+executable next step remains in [HANDOFF.md](../HANDOFF.md).
