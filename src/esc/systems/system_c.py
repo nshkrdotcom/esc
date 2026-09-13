@@ -20,6 +20,7 @@ from esc.core.witness import WitnessResult, evaluate_witness
 from esc.systems.base import BaseSystem, SystemResult
 from esc.workers.epistemic import EpistemicWorker
 from esc.workers.usage import invoke_with_usage
+from esc.workers.errors import ModelOutputError
 from esc.workers.mock import MockEpistemicWorker
 
 
@@ -68,6 +69,7 @@ class SystemCIsolated(BaseSystem):
         usages = []
         injection_applied = False
         exhausted = False
+        model_error = None
 
         for node in task.nodes:
             step = node.step_spec
@@ -144,6 +146,16 @@ class SystemCIsolated(BaseSystem):
                         result=StepResult(status="insufficient", value=None,
                                           assumptions=["Episode budget exhausted"]),
                         committed=False)
+                    break
+                except ModelOutputError as exc:
+                    abstained = True
+                    model_error = str(exc)
+                    usages.append(exc.usage)
+                    total_tokens += exc.usage["total_tokens"]
+                    kernel.record_audit(step=step, input_facts=local_state,
+                        result=StepResult(status="insufficient", value=None,
+                            assumptions=["Malformed model output"], raw_output=str(exc)),
+                        committed=False, tokens_used=exc.usage["total_tokens"])
                     break
                 usages.append(usage)
                 step_tokens = usage["total_tokens"]
@@ -251,8 +263,10 @@ class SystemCIsolated(BaseSystem):
             contract_violations=contract_violations,
             abstained=abstained,
             budget_exhausted=exhausted,
+            model_output_error=model_error is not None,
             error_propagated=error_propagated,
             details={"audit_log_length": len(kernel.audit_log),
+                     "model_output_error": model_error,
                      "audit_log": [entry.model_dump(mode="json") for entry in kernel.audit_log],
                      "usage_kind": "simulated" if isinstance(self.worker, MockEpistemicWorker) else "measured",
                      "step_usage": usages, "injected_error": injection_applied,

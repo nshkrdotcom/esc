@@ -36,7 +36,7 @@ There is **no controlled result table yet**. Dashes denote unmeasured outcomes, 
 
 **New benchmark compatibility check:** one `relational_v2` development task at depth 2, one outer repeat, completed in all three conditions. A and B answered correctly; C abstained after its generated parser repeatedly found no rows. A/B/C used 11,822 / 48,763 / 14,426 tokens and 36.6 / 160.4 / 42.3 seconds. B's three rollouts required final extraction after reaching the iteration limit. These unequal-cost episodes are not headline results. A compact [evidence snapshot](docs/evidence/relational_v2_validation_001.json) accompanies the code; full local traces remain in ignored `outputs/relational_v2_validation_001/`.
 
-**Shared-ledger compatibility check:** one further depth-2 development task run used a nonbinding allowance of 100,000 tokens per condition. A/B/C spent 16,932 / 47,208 / 4,874 tokens; A/B were correct and C was incorrect. All reservations settled with no exhaustion or unknown usage. The [saved snapshot](docs/evidence/budget_generous_001.json) supports these accounting observations. Live binding-budget validation is still pending; the [handoff](HANDOFF.md) states the precise next steps.
+**Earlier shared-ledger compatibility check:** one further depth-2 development task run used a nonbinding allowance of 100,000 tokens per condition. A/B/C spent 16,932 / 47,208 / 4,874 tokens; A/B were correct and C was incorrect. All reservations settled with no exhaustion or unknown usage. The [saved snapshot](docs/evidence/budget_generous_001.json) supports these accounting observations. Subsequent binding and generous checks pass request-journal replay; [M2_VALIDATION.md](docs/M2_VALIDATION.md) records the new results and the [handoff](HANDOFF.md) states the next gates.
 
 These smoke checks establish neither a Pareto winner nor a reliability effect. None has repeated-trial uncertainty. C's abstention is a failed task, not an observed containment benefit.
 
@@ -83,6 +83,15 @@ The preserved legacy runtime trace shows A choosing a document-header line, fail
 A [shared soft episode allowance](docs/EPISODE_BUDGET.md) now accounts for all
 worker calls and records exhaustion without aborting the sweep. Prompt costs
 can overshoot; this does not yet establish matched compute or clear M2.
+Live binding and generous checks now pass independent request-journal replay.
+At a 1,000-token allowance, prompt costs caused 130–142% overshoot in the
+journaled binding check. A four-depth development attempt also exposed malformed
+model output aborting a batch; that is now recorded as a failed attempt, with the
+historical aborted batch preserved. See [the validation report](docs/M2_VALIDATION.md)
+for outcomes and the remaining cost-policy gate.
+The completed four-depth development calibration also passes accounting replay,
+but uses only one paired world and one repetition. C exited early in every task;
+costs differed substantially. This is feasibility evidence, not support for H₁.
 
 The primary claim remains untested until compute, corpus access, depth manipulation, repetitions and uncertainty are controlled. Citation existence is not semantic verification. The new relational family uses a deterministic authoritative-row witness, so any eventual benefit there is scoped to Type I checkable transitions; it would not establish the effect for Type II/III reasoning.
 

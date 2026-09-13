@@ -1,7 +1,8 @@
 """Condition B — Search-Heavy Architecture.
 
-Continuous worker with retries and Best-of-N sampling matching the compute
-budget of Condition C. Tests the trade-off:
+Continuous worker with independent rollouts and majority voting. An optional
+episode allowance is shared by all rollouts; actual spend is not matched to C.
+Tests the trade-off:
   Spend compute on trajectories (Condition B)
   vs.
   Spend compute on boundaries (Condition C)
@@ -93,6 +94,7 @@ class SystemBSearchHeavy(BaseSystem):
             contract_violations=0,
             abstained=best_answer is None,
             budget_exhausted=exhausted,
+            model_output_error=any(r.model_output_error for r in results),
             error_propagated=error_propagated,
             details={"rollouts_count": len(results), "rollouts": [r.model_dump() for r in results]},
         )

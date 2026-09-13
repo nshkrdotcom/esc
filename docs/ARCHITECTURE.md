@@ -8,7 +8,7 @@ ESC tests whether separating persistent epistemic state from transient reasoning
 2. Missing inputs block the step; they are not counted as consumed invalid state.
 3. The corpus compiler supplies only permitted source documents.
 4. `EpistemicWorker` invokes DSPy RLM, whose default interpreter factory creates a fresh interpreter per invocation. The Python worker object is reusable; interpreter variables and RLM history are not shared across invocations.
-5. The worker returns a validated `StepResult`. Malformed outputs and backend failures raise errors.
+5. The worker returns a validated `StepResult`. Malformed model outputs become flagged unsuccessful attempts with known usage; backend/accounting failures still raise and stop the batch.
 6. Supported, nonempty outputs with no unresolved assumptions pass to a witness. Rejected, ambiguous or insufficient outputs halt the default pipeline.
 7. A successful promotion stores a copy of the fact in canonical state. The audit record contains the step output, witness decision, usage and available trajectory. Audit data is saved but is not supplied to the next default invocation.
 

@@ -1,0 +1,206 @@
+{
+  "scope": "Live binding-allowance development validation; independent request audit passed; not matched compute",
+  "configuration": {
+    "task_sizes": [
+      2
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 42,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120.0,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "episode_token_budget": 1000,
+    "budget_policy": "soft_generation_reservation_v1",
+    "request_journal_version": 1,
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "results": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": true,
+      "budget_exhausted": true,
+      "tokens_used": 2419,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 1000,
+        "prompt_tokens": 2072,
+        "completion_tokens": 347,
+        "measured_tokens": 2419,
+        "overshoot": 1419,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 1,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": true,
+      "budget_exhausted": true,
+      "tokens_used": 2356,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 1000,
+        "prompt_tokens": 2072,
+        "completion_tokens": 284,
+        "measured_tokens": 2356,
+        "overshoot": 1356,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 1,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": true,
+      "budget_exhausted": true,
+      "tokens_used": 2300,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 1000,
+        "prompt_tokens": 2016,
+        "completion_tokens": 284,
+        "measured_tokens": 2300,
+        "overshoot": 1300,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 1,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    }
+  ],
+  "requests": [
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320011.2545075,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1000
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320021.2421653,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 347,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": true
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320022.3854887,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1000
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320029.3632872,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 284,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": true
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320030.4787958,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1000
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320037.8068497,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2016,
+      "completion_tokens": 284,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": true
+    }
+  ]
+}

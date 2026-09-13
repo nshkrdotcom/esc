@@ -25,6 +25,7 @@ class SystemResult(BaseModel):
     contract_violations: int = 0
     abstained: bool = False
     budget_exhausted: bool = False
+    model_output_error: bool = False
     error_propagated: bool = False
     details: dict[str, Any] = Field(default_factory=dict)
 

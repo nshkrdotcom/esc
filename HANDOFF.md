@@ -1,17 +1,18 @@
-# Handoff — paused after initial M2 implementation
+# Handoff — M2 request accounting and live validation
 
 ## Start here
 
 **Completion boundary:** the implementation and handoff are ready for the next
 development validation. The confirmatory experiment is not complete. M0/M1 are
-complete, initial M2 code is complete and offline-tested, live M2 exhaustion
-validation and the matched-cost policy are pending, and M3–M5 are not implemented.
+complete, M2 request accounting and live exhaustion validation work, the
+matched-cost policy is pending, and M3–M5 are not implemented.
 
 The shared **soft** episode allowance is implemented and offline-tested. Experiment
 1 is still a development pipeline, not a valid H₁ study. Do not start a large
 sweep, GEPA, or publish comparative claims yet. No experiment is running at this
-handoff. The next action is the small binding-budget check below, when the owner
-is ready to spend local inference time.
+handoff. Binding, generous, and four-depth checks have completed; the next gate is the cost
+policy, informed by [M2_VALIDATION.md](docs/M2_VALIDATION.md). Do not repeat a
+historical run just because an older handoff called it pending.
 
 Read [budget semantics](docs/EPISODE_BUDGET.md), then the
 [research gates](docs/EXPERIMENT_1_PLAN.md). [RESEARCH_NOTE.md](RESEARCH_NOTE.md)
@@ -56,8 +57,16 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
   interception; generation reservations; measured prompt reconciliation; shared
   B rollouts/C steps; durable exhaustion after swallowed REPL errors; partial B
   votes and C audit preservation; runner continues exhausted episodes.
-- `ESC_TEST_RLM=1 uv run pytest -q`: **119 passed**. Includes an actual scripted
+- Request-boundary journaling and `uv run esc audit-budget <directory>` now replay
+  reservations, measured responses, blocked attempts, and completed episode totals.
+  The journal covers rejected responses that never enter DSPy history.
+- Malformed model outputs now become measured unsuccessful attempts under
+  `record_failed_attempt_v1`, preserving C's audit and B's other rollout votes.
+  The aborted first depth sweep is retained as evidence for this change.
+- `ESC_TEST_RLM=1 uv run pytest -q`: **134 passed**, including an actual scripted
   Deno/Pyodide recursive-call exhaustion test; no inference needed for these tests.
+  Batched recursive calls, concurrent journal attribution, malformed/tampered
+  records, and journal-write failures also have offline coverage.
 - Final preparation fixes preserve Ctrl-C/cancellation and original provider
   diagnostics, reject noninteger allowances before dispatch, mark malformed usage
   as unknown consumption, and reject orphaned output artifacts. The exported
@@ -72,6 +81,16 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
 - Compact evidence is versioned in
   [docs/evidence/budget_generous_001.json](docs/evidence/budget_generous_001.json).
   Full local output directories are ignored by Git. Do not expect them in a clone.
+- Current binding and generous request-audited results are in
+  [M2_VALIDATION.md](docs/M2_VALIDATION.md), alongside the first aborted depth
+  calibration and the changed malformed-output failure policy. The older
+  `budget_generous_001` numbers above remain a historical check, not the latest run.
+- `budget_depth_dev_003`: all 12 development episodes completed and passed journal
+  replay (200,393 tokens; four exhausted episodes; one model-output-error episode).
+  `_001` failed before the output-error fix; `_002` was interrupted after 10/12.
+  Both incomplete batches are preserved and excluded from comparative analysis.
+  C's early provenance failures and A's all-correct outcomes on this single world
+  preclude meaningful slope estimation. Full results are in the validation report.
 
 ## Exact next commands
 
@@ -91,21 +110,21 @@ If the alias is missing, follow the runtime setup before proceeding. Merely
 running `ollama list` does not assert that the required alias exists. Do not pull
 weights or launch inference as part of a documentation/offline check.
 
-When ready for the pending live check:
+The local binding and generous runs can now be audited without inference:
 
 ```bash
-uv run esc run --benchmark relational_v2 --split dev --depths 2 \
-  --tasks-per-depth 1 --repetitions 1 --no-mock \
-  --episode-token-budget 1000 --output-dir outputs/budget_binding_001
+uv run esc audit-budget outputs/budget_journal_binding_001
+uv run esc audit-budget outputs/budget_journal_generous_001
+uv run esc audit-budget outputs/budget_depth_dev_003
 ```
 
-The binding run has **not been performed**. It executes A/B/C, not a single LM
-call. Prompt usage can exceed 1,000; that is an expected property of this soft
-policy, not proof of hard enforcement. Use a fresh output directory if that name
-exists. The runner rejects overwrites and has **no resume command**.
+These commands need the local raw artifacts; a fresh clone instead has the
+versioned evidence snapshots. All three checks passed. Prompt usage exceeded 1,000 in
+the binding run; this validates recorded soft-budget exhaustion, not hard
+enforcement. The runner rejects overwrites and has **no resume command**.
 
-Check `experiment_1_summary.json`, `runs.jsonl`, `events.jsonl`, and any
-`failure.json`. Accept this initial check only if all three episodes are persisted,
+For future validation runs, check `experiment_1_summary.json`, `runs.jsonl`,
+`requests.jsonl`, `events.jsonl`, and any `failure.json`. Accept a binding check only if all three episodes are persisted,
 at least one exhausts, ledger arithmetic reconciles, pending/unknown reservations
 are zero, and the sweep finishes. Inspect budget-reduced truncation handling. Preserve
 failures; do not retry until success and omit the earlier attempt. Add a compact
@@ -115,28 +134,30 @@ evidence snapshot and update this handoff after validation.
 Blocked attempts can emit it. Usage from a response rejected by the budget wrapper
 may never enter DSPy history, so its `lm_end` may lack usage. Concurrent callbacks
 also infer usage from shared LM history, which cannot reliably attribute each call.
-Use ledger aggregates as the accounting source, and do not claim that counting
-`lm_start`/`lm_end` proves absence of dispatch or independently reconciles every
-charged call. Offline wrapper tests verify dispatch blocking. Add a per-request
-provider-boundary journal before claiming independent live auditability at M2.
+Do not claim that counting `lm_start`/`lm_end` proves absence of dispatch or
+reconciles every charged call. Use the new `requests.jsonl` and offline auditor
+instead. This independently replays the ledger's arithmetic, while trusting the
+same provider-reported usage; it does not independently measure GPU work.
 
 ## Granular remaining roadmap, in order
 
-1. **M2 validation:** run the binding check and inspect ledger arithmetic against
-   available provider data and nonbinding worker usage. Then add a provider-boundary
-   journal containing reservation/request ID, capped generation, response usage,
-   finish reason and terminal outcome, including rejected responses. Test concurrent
-   attribution and independent reconciliation with the ledger. Confirm root,
-   recursive and extraction paths are counted once. Diagnose discrepancies before
-   further runs. Backend/unknown-usage failures invalidate a batch, while exhaustion
-   is a recorded episode outcome. B may retain a correct completed vote.
+1. **M2 accounting validation — implemented:** binding and generous checks pass,
+   including independent journal replay. Preserve these regression checks when
+   changing allocation policy. Backend/unknown-usage failures invalidate a batch,
+   while exhaustion is a recorded outcome. B may retain a correct completed vote.
 2. **M2 study policy:** choose and freeze an acceptable cost allocation policy on
    development worlds. Current policy reserves generation only; prompt overshoot
    has no guaranteed bound. Investigate a validated exact-template tokenizer or
    conservative reservation if hard total-token enforcement is required. Version
    any changed policy, test concurrency again, and document actual versus allowed
    cost. Keep `compute_matched=false` until a defensible matching criterion exists.
-3. **M2 calibration:** inspect small development runs across depths, costs,
+   Resolve the continuous worker's literal-`None` refusal/voting semantics before
+   study freeze; current development runs keep their original scoring.
+   Diagnose C's public source-ID handling without weakening its row witness or
+   routing it to answer-bearing documents unavailable to A/B.
+3. **M2 calibration — first sweep complete:** `budget_depth_dev_003` covers all
+   four depths, but only one world and one repetition. After the policy/interface
+   decisions, use additional development worlds to inspect
    saturation, refusal/truncation and call counts. Select budget bands without
    held-out labels. Per-invocation iteration caps differ in aggregate for A/C;
    report this second resource axis rather than claiming call parity.
@@ -174,7 +195,7 @@ provider-boundary journal before claiming independent live auditability at M2.
 
 | Gate | Main files / new deliverable | Required evidence before closing |
 |---|---|---|
-| M2 accounting and validation | `src/esc/budget.py`, `src/esc/telemetry.py`, `src/esc/workers/usage.py`; `tests/test_budget.py`, `tests/test_rlm_integration.py` | Nonbinding and binding records; independently reconcilable request journal; concurrency and swallowed-error regressions |
+| M2 accounting and validation (implemented) | `src/esc/budget.py`, `src/esc/journal.py`, `src/esc/audit.py`, `src/esc/workers/usage.py`; budget/journal/interpreter tests | Binding and generous records pass journal replay; preserve concurrency and swallowed-error regressions |
 | M2 outcomes and policy | `src/esc/runner.py`, `src/esc/cli.py`, `src/esc/systems/system_a.py`, `src/esc/systems/system_b.py`, `src/esc/systems/system_c.py`; versioned budget policy | No dropped exhausted episodes; correct partial-vote/audit semantics; documented allocation and cost-matching acceptance criterion |
 | M3 intervention | New intervention module plus worker/RLM hooks and result fields | Same public intervention across architectures, clean/intervened pairs, reached-site denominators, no evaluator leakage |
 | M4 ablations | Explicit architecture configurations and context-capture tests | Each of the five variants in the research note actually receives the advertised history/state/witness inputs |
@@ -190,19 +211,18 @@ criterion; valid negative or inconclusive results can close the study.
 
 ## Handoff audit
 
-The handoff was checked against code, saved local artifacts, the CLI help, and a
-fresh offline run of all 119 tests. The versioned generous-budget snapshot matches
+The handoff was checked against code, saved local artifacts, the CLI help, and
+fresh offline tests. The versioned generous-budget snapshot matches
 its saved manifest and all three result/ledger records exactly. Internal document
-file links resolve. No live experiment was started during this audit, and the
-binding check remains unrun. Stale failure semantics, legacy-depth wording, and
-unsupported external-benchmark assumptions were corrected. Provider-boundary
-auditability remains an explicit pending deliverable rather than an inferred
-property of callback logs.
+file links resolve. The earlier documentation-only audit was followed by live
+M2 validation; the binding check is now complete. Stale failure semantics, legacy-depth wording, and
+unsupported external-benchmark assumptions were corrected. Request accounting
+now has its own journal rather than relying on callback history.
 
 ## Working rules for the next agent
 
 Preserve existing artifacts and owner edits. No running background job is expected.
 Do not treat the smoke outcomes as architecture evidence, mock outputs as real
 results, soft allowances as equal spend, or citation existence as semantic truth.
-Keep patches small and tested. This handoff intentionally stops before the pending
-live validation; no large experiment is authorized by merely reading this document.
+Keep patches small and tested. A large held-out study remains gated on cost
+policy and study controls; merely reading this document does not authorize one.

@@ -23,6 +23,18 @@ console = Console()
 
 
 @app.command()
+def audit_budget(directory: str = typer.Argument(..., help="Completed run directory with requests.jsonl")):
+    """Reconcile request records and episode accounting without model calls."""
+    import json
+    from esc.audit import audit_budget_run
+    try:
+        report = audit_budget_run(directory)
+    except (ValueError, KeyError, OSError) as exc:
+        raise typer.BadParameter(f"Budget audit failed: {exc}") from exc
+    typer.echo(json.dumps(report, indent=2))
+
+
+@app.command()
 def run(
     depths: str = typer.Option("2,4,8,16", help="Depths for relational_v2; nominal node counts for legacy"),
     benchmark: str = typer.Option("legacy", help="legacy or relational_v2 (controlled relational chains)"),

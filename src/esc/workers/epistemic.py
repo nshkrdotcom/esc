@@ -5,6 +5,8 @@ from __future__ import annotations
 import time
 from typing import Any
 import dspy
+from pydantic import ValidationError
+from esc.workers.errors import ModelOutputError
 
 from esc.core.signatures import ResolveStep
 from esc.core.types import Evidence, Fact, StepResult
@@ -61,6 +63,9 @@ class EpistemicWorker(dspy.Module):
         raw_res = getattr(pred, "result", None)
         if isinstance(raw_res, StepResult):
             return raw_res
-        if isinstance(raw_res, str):
-            return StepResult.model_validate_json(raw_res)
-        return StepResult.model_validate(raw_res)
+        try:
+            if isinstance(raw_res, str):
+                return StepResult.model_validate_json(raw_res)
+            return StepResult.model_validate(raw_res)
+        except ValidationError as exc:
+            raise ModelOutputError(f"Invalid StepResult: {exc}") from exc

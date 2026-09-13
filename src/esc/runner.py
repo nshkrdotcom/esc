@@ -18,6 +18,7 @@ from esc.benchmark.relational import generate_relational_suite
 from esc.config import RLMConfig
 from esc.budget import BudgetedLM, EpisodeLedger, EpisodeBudgetExhausted
 from esc.telemetry import RunTelemetry
+from esc.journal import RequestJournal
 from esc.eval.decay import HorizonDecayResult, fit_horizon_decay
 from esc.eval.metrics import EvalVector, compute_eval_vector
 from esc.systems.base import BaseSystem, SystemResult
@@ -112,6 +113,8 @@ def run_experiment_1(
         "compute_matched": False, "error_injection": False,
         "episode_token_budget": episode_token_budget,
         "budget_policy": "soft_generation_reservation_v1" if episode_token_budget else None,
+        "request_journal_version": 1 if episode_token_budget else None,
+        "model_output_failure_policy": "record_failed_attempt_v1",
         "scope": "pipeline pilot; no confirmatory H1 inference",
         "benchmark": benchmark, "split": split,
         "world_width": world_width if benchmark == "relational_v2" else None,
@@ -121,7 +124,7 @@ def run_experiment_1(
         out_path.mkdir(parents=True, exist_ok=True)
         if any((out_path / name).exists() for name in
                ("experiment_1_summary.json", "experiment_1_summary.json.tmp",
-                "runs.jsonl", "manifest.json", "tasks.json", "events.jsonl", "failure.json")):
+                "runs.jsonl", "manifest.json", "tasks.json", "events.jsonl", "failure.json", "requests.jsonl")):
             raise FileExistsError(f"Run artifacts already exist in {out_path}; choose a new output directory")
         with (out_path / "manifest.json").open("x") as handle:
             json.dump(configuration, handle, indent=2, allow_nan=False)
@@ -154,13 +157,15 @@ def run_experiment_1(
     }
     all_runs: list[SystemResult] = []
     telemetry = RunTelemetry(out_path / "events.jsonl") if out_path else None
+    journal = RequestJournal(out_path / "requests.jsonl") if out_path and episode_token_budget else None
     callbacks = list(dspy.settings.callbacks or []) + ([telemetry] if telemetry else [])
 
     for task in all_tasks:
         for rep in range(repetitions):
             for sys_name, system in systems.items():
                 episode = {"task_id": task.task_id, "system": sys_name, "repetition": rep}
-                ledger = EpisodeLedger(episode_token_budget) if episode_token_budget else None
+                ledger = EpisodeLedger(episode_token_budget,
+                    event_sink=journal.for_episode(episode) if journal else None) if episode_token_budget else None
                 started = time.perf_counter()
                 if telemetry:
                     telemetry.episode = episode
@@ -203,7 +208,8 @@ def run_experiment_1(
                 results_by_system_and_task[sys_name][task.task_id].append(run_res)
                 all_runs.append(run_res)
                 if telemetry:
-                    telemetry.record("episode_end", tokens=run_res.tokens_used, correct=run_res.is_correct)
+                    telemetry.record("episode_end", tokens=run_res.tokens_used, correct=run_res.is_correct,
+                                     model_output_error=run_res.model_output_error)
                 if not use_mock:
                     print(f"Completed: {run_res.tokens_used} tokens, "
                           f"{run_res.latency_ms/1000:.1f}s, correct={run_res.is_correct}", flush=True)

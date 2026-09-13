@@ -1,0 +1,716 @@
+{
+  "scope": "Live generous-allowance development validation; independent request audit passed; not matched compute",
+  "configuration": {
+    "task_sizes": [
+      2
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 42,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120.0,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "episode_token_budget": 100000,
+    "budget_policy": "soft_generation_reservation_v1",
+    "request_journal_version": 1,
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "results": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": true,
+      "abstained": false,
+      "budget_exhausted": false,
+      "tokens_used": 8128,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 7258,
+        "completion_tokens": 870,
+        "measured_tokens": 8128,
+        "overshoot": 0,
+        "remaining": 91872,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": false,
+      "budget_exhausted": false,
+      "tokens_used": 45944,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 40552,
+        "completion_tokens": 5392,
+        "measured_tokens": 45944,
+        "overshoot": 0,
+        "remaining": 54056,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 14,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": true,
+      "budget_exhausted": false,
+      "tokens_used": 7650,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 6947,
+        "completion_tokens": 703,
+        "measured_tokens": 7650,
+        "overshoot": 0,
+        "remaining": 92350,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    }
+  ],
+  "requests": [
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320058.1335447,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320068.166995,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 341,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789320068.1978495,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789320076.662944,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2427,
+      "completion_tokens": 320,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789320076.6892726,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789320082.7508717,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2759,
+      "completion_tokens": 209,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320083.968102,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320093.2337246,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 368,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789320093.2636929,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789320096.2401593,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2454,
+      "completion_tokens": 105,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789320096.2557297,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789320108.9202137,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2674,
+      "completion_tokens": 485,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 7,
+      "time": 1789320108.9471824,
+      "request_id": 4,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 8,
+      "time": 1789320116.274826,
+      "request_id": 4,
+      "outcome": "measured",
+      "prompt_tokens": 3171,
+      "completion_tokens": 273,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 9,
+      "time": 1789320117.3875363,
+      "request_id": 5,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 10,
+      "time": 1789320127.1008499,
+      "request_id": 5,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 383,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 11,
+      "time": 1789320127.1303864,
+      "request_id": 6,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 12,
+      "time": 1789320138.3499959,
+      "request_id": 6,
+      "outcome": "measured",
+      "prompt_tokens": 2469,
+      "completion_tokens": 428,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 13,
+      "time": 1789320138.3727906,
+      "request_id": 7,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 14,
+      "time": 1789320152.0006852,
+      "request_id": 7,
+      "outcome": "measured",
+      "prompt_tokens": 2899,
+      "completion_tokens": 503,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 15,
+      "time": 1789320152.0234075,
+      "request_id": 8,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 16,
+      "time": 1789320164.5062487,
+      "request_id": 8,
+      "outcome": "measured",
+      "prompt_tokens": 3409,
+      "completion_tokens": 471,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 17,
+      "time": 1789320164.5279741,
+      "request_id": 9,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 18,
+      "time": 1789320175.8288345,
+      "request_id": 9,
+      "outcome": "measured",
+      "prompt_tokens": 3357,
+      "completion_tokens": 331,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 19,
+      "time": 1789320176.9669359,
+      "request_id": 10,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 20,
+      "time": 1789320187.425388,
+      "request_id": 10,
+      "outcome": "measured",
+      "prompt_tokens": 2072,
+      "completion_tokens": 397,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 21,
+      "time": 1789320187.4559112,
+      "request_id": 11,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 22,
+      "time": 1789320190.6423385,
+      "request_id": 11,
+      "outcome": "measured",
+      "prompt_tokens": 2483,
+      "completion_tokens": 115,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 23,
+      "time": 1789320190.6601944,
+      "request_id": 12,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 24,
+      "time": 1789320205.6175592,
+      "request_id": 12,
+      "outcome": "measured",
+      "prompt_tokens": 2713,
+      "completion_tokens": 587,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 25,
+      "time": 1789320205.640315,
+      "request_id": 13,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 26,
+      "time": 1789320222.0556698,
+      "request_id": 13,
+      "outcome": "measured",
+      "prompt_tokens": 3978,
+      "completion_tokens": 603,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 27,
+      "time": 1789320222.0811067,
+      "request_id": 14,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 28,
+      "time": 1789320233.4039416,
+      "request_id": 14,
+      "outcome": "measured",
+      "prompt_tokens": 4729,
+      "completion_tokens": 343,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789320234.5588,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789320241.387595,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2016,
+      "completion_tokens": 252,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789320241.4188526,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789320247.5517194,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2307,
+      "completion_tokens": 233,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789320247.5768676,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789320253.3065007,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2624,
+      "completion_tokens": 218,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    }
+  ]
+}

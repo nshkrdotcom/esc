@@ -11,7 +11,7 @@ class ContinuousWorker(dspy.Module):
     """Monolithic worker that receives the entire task and runs a continuous reasoning trajectory.
 
     Condition A uses this directly.
-    Condition B wraps this in Best-of-N / retries matching compute budget.
+    Condition B wraps this in independent rollouts sharing an optional episode allowance.
     """
 
     def __init__(

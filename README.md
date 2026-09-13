@@ -21,6 +21,9 @@ Start with [RESEARCH_NOTE.md](RESEARCH_NOTE.md) for the hypothesis, actual evide
 | D — GEPA | Deferred; live use is rejected until compilation/loading is implemented |
 
 B's actual spend is not matched to C. An optional shared soft episode allowance records exhaustion and continues the sweep; prompt costs can overshoot. Mock workers intentionally use hidden labels and scripted error behavior; their results cannot support the hypothesis. Backend/accounting failures stop the run; missing token usage is an error.
+Malformed model outputs are flagged unsuccessful attempts with measured usage,
+so they do not silently remove the rest of a sweep. Budgeted runs now include a
+[request journal and offline auditor](docs/REQUEST_JOURNAL.md).
 
 ## Setup and offline checks
 

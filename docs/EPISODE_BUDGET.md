@@ -45,15 +45,20 @@ tokens or refunded. Backend/accounting failures still invalidate the batch and
 write `failure.json` with its ledger. Malformed response metadata also marks the
 request's consumption unknown and settles its pending reservation conservatively.
 Original provider errors and explicit cancellation/Ctrl-C are preserved, rather
-than being replaced by budget checks during cleanup. Ordinary malformed output and non-budget
-truncation retain existing failure behavior; they are not automatically reclassified
-as exhaustion. Raw events retain available provider output and finish reasons.
+than being replaced by budget checks during cleanup. Under
+`model_output_failure_policy=record_failed_attempt_v1`, adapter parsing failures
+and invalid typed outputs become flagged unsuccessful attempts with measured
+usage; the sweep continues. B counts failed rollouts against its slots, and C
+preserves the failed step in its audit. No free repair/retry is added. Non-budget
+output truncation is not automatically relabeled budget exhaustion. Raw events
+retain available provider output and finish reasons.
 DSPy callback `lm_start` events include blocked attempts. Responses rejected by
 the wrapper may not enter DSPy history; their callback usage can be absent. Under
 concurrency the history-based callback cannot attribute each response reliably.
-Ledger snapshots remain the accounting source. A separate per-request journal at
-the provider boundary is pending for independent reconciliation; aggregate
-snapshots and callback counts alone do not supply that audit.
+Budgeted runs now have a separate [request journal](REQUEST_JOURNAL.md), written
+at the backend-call boundary before the response is exposed to DSPy. Use
+`uv run esc audit-budget <directory>` to replay it against ledger snapshots and
+saved episodes. Provider-reported tokens remain the common measurement source.
 
 Example development check (choose an unused output directory):
 
@@ -63,7 +68,7 @@ uv run esc run --benchmark relational_v2 --split dev --depths 2 \
   --episode-token-budget 100000 --output-dir outputs/budget_dev
 ```
 
-M2 remains partial: validate these mechanics in development, then establish an
+M2 remains partial: binding and generous development checks now pass, but establish an
 acceptable allocation/overshoot policy before a controlled study. A conservative
 prompt reservation or validated tokenizer would be a separate policy version.
 Keep `compute_matched=false`; report allowance and actual costs separately. Live

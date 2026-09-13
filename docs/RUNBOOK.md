@@ -78,10 +78,18 @@ the manifest is missing. Select a new directory; preserve the old evidence.
 - `tasks.json`: reproducible corpus, public task instructions and evaluator labels. Only public inputs reach live workers.
 - `runs.jsonl`: one flushed record per completed episode, repetition ID, measured usage, and available audit/trajectory data. B stores its constituent rollout records.
 - `events.jsonl`: flushed episode starts/ends, LM attempts/ends with available raw outputs, usage and finish reasons, interpreter outputs, and budget snapshots when enabled. A logged LM attempt may be blocked before dispatch; rejected-response usage and concurrent per-call attribution have [limitations](EPISODE_BUDGET.md). Available `finish_reasons: ["length"]` identifies output truncation.
+- `requests.jsonl`: budgeted runs only; request-boundary reservations, responses and rejections, with IDs and sequence numbers independent of DSPy history. Validate with `uv run esc audit-budget <directory>`; see [REQUEST_JOURNAL.md](REQUEST_JOURNAL.md).
 - `experiment_1_summary.json`: overall and per-depth vectors and descriptive fits, written on successful completion.
 - `failure.json`: task, condition, repetition, exception and optional ledger snapshot if a backend/accounting failure or interruption stops the run. Budget exhaustion is instead recorded in `runs.jsonl` and the sweep continues.
 
 There is no automatic resume. Earlier completed episodes remain readable after failure; use a new directory for another run. No summary means the run did not finish. Unmeasured/inapplicable metrics display N/A. H₁ is explicitly untested.
+
+Malformed model outputs now have `model_output_error=true` and retain measured
+usage as unsuccessful attempts instead of aborting the sweep. The manifest records
+`model_output_failure_policy=record_failed_attempt_v1`. B can still answer from
+other valid rollouts; the flag means at least one rollout failed formatting, not
+necessarily that the final ensemble answer was wrong. Backend and unknown-usage
+failures remain fatal. Historical aborted runs are not rewritten under this policy.
 
 For the default `legacy` family, `--depths` selects nominal task sizes with measured dependency depths 2, 4, 7, and 15. For `relational_v2` it selects exact depths 2, 4, 8, and 16. See [legacy limitations](EPIDAG_BENCHMARK.md) and [relational controls](RELATIONAL_BENCHMARK.md).
 

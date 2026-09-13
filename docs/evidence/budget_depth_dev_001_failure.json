@@ -1,0 +1,100 @@
+{
+  "scope": "Aborted development batch; do not analyze the completed prefix as a study",
+  "configuration": {
+    "task_sizes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 42,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120.0,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "episode_token_budget": 24000,
+    "budget_policy": "soft_generation_reservation_v1",
+    "request_journal_version": 1,
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "completed_episodes": 4,
+  "completed_prefix": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": true,
+      "budget_exhausted": false,
+      "tokens_used": 16887
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": true,
+      "budget_exhausted": true,
+      "tokens_used": 24940
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d2",
+      "depth": 2,
+      "is_correct": false,
+      "budget_exhausted": false,
+      "tokens_used": 10187
+    },
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d4",
+      "depth": 4,
+      "is_correct": true,
+      "budget_exhausted": false,
+      "tokens_used": 15648
+    }
+  ],
+  "failure": {
+    "task_id": "relational_v2_dev_dbe3cb4ed518dc2d_d4",
+    "system": "Condition_B_SearchHeavy",
+    "repetition": 0,
+    "error_type": "AdapterParseError",
+    "error": "Adapter ChatAdapter failed to parse the LM response. \n\nLM Response: [[ ## reasoning ## ]]\nThe third step has been successfully executed, and the next subject after following the relation \"rf2e0ff87d21d\" from \"e89bdb5a84cf1\" is \"e2548dd721adb\". Now, I need to follow the final relation in the sequence, which is \"rf9f49a4b2b53\". \n\nI will search the corpus context for a JSON row where the subject is \"e2548dd721adb\" and the relation is \"rf9f49a4b2b53\". Once I find that, I will use the object from this row as the final entity identifier.\nCode:\n```python\n# Find the next row with subject \"e2548dd721adb\" and relation \"rf9f49a4b2b53\"\nfourth_step_subject = \"e2548dd721adb\"\nfourth_step_relation = \"rf9f49a4b2b53\"\nfinal_entity = None\n\nfor entry in corpus_data:\n    if entry[\"subject\"] == fourth_step_subject and entry[\"relation\"] == fourth_step_relation:\n        final_entity = entry[\"object\"]\n        break\n\nprint(f\"Final entity identifier: {final_entity}\")\n```\n[[ ## completed ## ]] \n\nExpected to find output fields in the LM response: [reasoning, code] \n\nActual output fields parsed from the LM response: [reasoning] \n\n",
+    "ledger": {
+      "policy": "soft_generation_reservation_v1",
+      "budget": 24000,
+      "prompt_tokens": 10557,
+      "completion_tokens": 1306,
+      "measured_tokens": 11863,
+      "overshoot": 0,
+      "remaining": 12137,
+      "pending_reserved": 0,
+      "unknown_reserved": 0,
+      "calls_dispatched": 4,
+      "calls_blocked": 0,
+      "exhausted": false,
+      "accounting_failed": false
+    }
+  }
+}

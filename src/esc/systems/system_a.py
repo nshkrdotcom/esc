@@ -16,6 +16,7 @@ from esc.core.answers import answers_equal
 from esc.systems.base import BaseSystem, SystemResult
 from esc.workers.continuous import ContinuousWorker
 from esc.workers.usage import invoke_with_usage
+from esc.workers.errors import ModelOutputError
 from esc.workers.mock import MockContinuousWorker
 
 
@@ -83,12 +84,20 @@ class SystemAContinuous(BaseSystem):
                         if key in step_answers and not answers_equal(step_answers[key], task.ground_truth_map[key]):
                             error_propagated = True
         else:
-            pred, usage = invoke_with_usage(
-                self.worker, task_description=task.public_description(), corpus_context=full_corpus,
-            )
-            final_answer = getattr(pred, "final_answer", None)
-            if not isinstance(final_answer, str):
-                raise ValueError("Continuous worker did not return a string final_answer")
+            try:
+                pred, usage = invoke_with_usage(
+                    self.worker, task_description=task.public_description(), corpus_context=full_corpus,
+                )
+                final_answer = getattr(pred, "final_answer", None)
+                if not isinstance(final_answer, str):
+                    raise ModelOutputError("Continuous worker did not return a string final_answer", usage)
+            except ModelOutputError as exc:
+                return SystemResult(system_name=self.name, task_id=task.task_id, depth=task.depth,
+                    final_answer=None, target_answer=target, is_correct=False, abstained=True,
+                    model_output_error=True, tokens_used=exc.usage["total_tokens"],
+                    latency_ms=(time.perf_counter()-start_time)*1000,
+                    details={"usage_kind":"measured", "usage":exc.usage,
+                             "error_type":"ModelOutputError", "error":str(exc)})
             final_answer = final_answer.strip() or None
             tokens_used = usage["total_tokens"]
             details.update(usage_kind="measured", usage=usage,

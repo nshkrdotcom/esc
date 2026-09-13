@@ -48,11 +48,19 @@ generation only and reconciles measured prompt costs. It does not implement the
 validated preflight tokenizer below, claim bounded overshoot, or clear the
 matched-compute gate. The following remains the stricter study target.
 
-The 119-test suite and earlier generous live allowance check pass. The binding live check
-is pending. Callback events cannot independently attribute every rejected or
-concurrent response; add a provider-boundary request journal and reconcile it
-against ledger totals before claiming fully audited live enforcement. See the
-[handoff acceptance criteria](../HANDOFF.md).
+Binding and generous live checks now pass independent request-journal replay.
+The request journal covers rejected and concurrent responses without relying on
+DSPy history. A read-only `esc audit-budget` command checks it against saved
+episodes and ledger totals. The 134-test suite includes real batched recursive
+calls and malformed-output handling. A four-depth development sweep exposed a
+model-formatting failure that previously aborted batches; the new recorded
+failure policy counts it as an unsuccessful attempt. See [M2_VALIDATION.md](M2_VALIDATION.md)
+and the [handoff acceptance criteria](../HANDOFF.md). The subsequent complete
+four-depth calibration (`budget_depth_dev_003`) passed request replay for all 12
+episodes and 200,393 tokens. Four episodes exhausted; one recorded a model-output
+error without aborting the batch. Unequal realized costs and C's early provenance
+failures keep the policy and feasibility gates open. One paired development world
+is not a held-out reliability study.
 
 Implement one accounting owner around the actual LM backend, shared by root/subcalls, all C steps, and all B rollouts. Do not implement independent per-step caps and call them a matched episode budget.
 
