@@ -2,6 +2,12 @@
 
 **Status: Experiment 1 infrastructure and benchmark development. No evidence for the central hypothesis yet.**
 
+**Implementation update:** the [frozen study workflow](docs/STUDY_RUNBOOK.md) now
+implements common public-row parsing, comparable live transition hooks, explicit
+ablations, randomized execution, world-cluster analysis and four figure exports.
+Development validation is ongoing. Its declared cost policy is quality versus
+measured cost at soft allowance bands; it does not establish equal-compute H₁.
+
 Long-horizon LM programs often carry a model's linguistic history forward as state. ESC tests an alternative: discard reasoning history after each transition, persist typed externally validated state, and compile a fresh context for the next transition.
 
 **Hypothesis:** at equal model, available information, and inference compute, this reduces the rate at which final reliability decays with dependency depth.
@@ -54,7 +60,11 @@ The legacy company benchmark does not support this plot: task size changes answe
 
 Intervene on a reached intermediate candidate and measure downstream wrong answers at each distance, conditional on the intervention actually being applied. Keep wrong, correct, abstained, and unreached outcomes separate. Report containment together with final coverage so refusing everything cannot look like improved reliable composition.
 
-A/B need a comparable intervention inside their persistent RLM invocation. Replacing an answer only after the invocation has finished cannot test propagation. The current C hook and label-reading mock behaviors do not supply this figure. Candidate corruption before promotion and corruption of already accepted state are different interventions and must be separate experiments.
+A/B now have a receipt tool inside their persistent RLM invocation. Replacing an
+answer only after the invocation finishes still cannot test propagation. Candidate
+corruption before promotion and corruption of accepted state are implemented as
+separate modes. Live observations must report applied/reached sites and protocol
+violations; skipped receipts do not demonstrate containment.
 
 ### 3. Searchable success versus repeated success — pending
 
@@ -66,17 +76,28 @@ Existing metric functions alone are not evidence: the live validation has one ou
 
 | Intended variant | Fresh contexts | Typed state | Witness promotion | Current status |
 |---|---:|---:|---:|---|
-| Continuous | no | no | no | A implemented |
-| Isolation only | yes | no | no | Not implemented faithfully |
-| Shared history with contracts | no | yes | yes | Current mode carries summaries, not full history |
-| Isolation + typing | yes | yes | no | Prototype `no_verification`; needs controlled validation |
-| Full ESC | yes | yes | yes | C implemented; witnesses have limited scope |
+| Continuous | no | no | no | Uninstrumented and receipt-instrumented variants |
+| Isolation only | yes | no | no | `isolated_raw`, raw value crosses fresh invocations |
+| Shared history with contracts | no | yes | yes | `shared_verified`, one native RLM history/interpreter |
+| Isolation + typing | yes | yes | no | `isolated_typed`, candidate facts retain evidence |
+| Full ESC | yes | yes | yes | `isolated_verified`, strict public-row witness |
 
-The current `no_typing` mode still uses typed facts and witnesses; `raw_summaries` breaks typed arithmetic inputs. They cannot stand in for the proposed ablations. Attribute effects only from controlled contrasts, not additive percentages inferred from separate accuracy deltas. Interactions between isolation, state format, and promotion may dominate.
+Historical pilot modes `no_typing` and `raw_summaries` still cannot stand in for
+these ablations. The new explicit variants have context/interpreter tests and
+are undergoing live development validation. Attribute effects only from controlled
+contrasts, not additive percentages inferred from separate accuracy deltas.
+Interactions between isolation, state format, and promotion may dominate.
 
-## One trace — not yet the requested paired failure
+## One trace — development only
 
-The preserved legacy runtime trace shows A choosing a document-header line, failing a revenue regex twice, then correcting its line selection and answering correctly. That is an actual self-correction, **not** a demonstration of global contamination. No paired live A/C failure with a shared intervention exists yet. We will publish a linked, reproducible pair with its task, seed, model settings, intervention and witness decision when the intervention machinery is ready. We will not substitute a scripted mock cascade or an imagined narrative.
+The first six-episode study development batch has an actual isolated-typed
+clean/intervened pair: the clean chain completed correctly, while the injected
+valid alternate entity crossed the unverified boundary and the next value was
+wrong. A separate verified episode rejected its corrupted candidate. However,
+the continuous intervened episode skipped receipts, and a clean verified episode
+had a formatting failure. These are mechanism checks, **not** a matched paired
+A/C containment result. The exporter preserves an actual trace with its run;
+we will not replace missing comparisons with an imagined narrative.
 
 ## Scope, falsification, and next gate
 

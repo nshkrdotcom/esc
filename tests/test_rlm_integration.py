@@ -25,6 +25,35 @@ def test_real_rlm_accepts_typed_null_abstention():
     assert result.final_answer is None and usage['lm_calls'] == 1
 
 
+def test_study_receipts_preserve_real_interpreter_and_inject_inside_trajectory():
+    from esc.study_systems import run_variant
+    from esc.benchmark.relational import generate_relational_suite
+    from esc.config import RLMConfig
+    task = generate_relational_suite(depths=[2],tasks_per_depth=1,width=4)[0]
+    code = '''
+import json
+assert private_scratch == 42
+specs = json.loads(task.split('Public step specifications:\\n')[1])
+rows = read_rows()
+subject = specs[0]['lookup']['subject']
+for spec in specs:
+    row = next(r for r in rows if r['subject'] == subject and r['relation'] == spec['lookup']['relation'])
+    receipt = emit(spec['step_id'], subject, row['object'], [{'source_id':row['source_id'], 'span':row['span']}])
+    subject = receipt['value']
+    if receipt['stop']:
+        break
+SUBMIT(answer=subject)
+'''
+    lm = DummyLM([{'reasoning':'initialize private scratch', 'code':'private_scratch = 42'},
+                  {'reasoning':'follow receipts', 'code':code}])
+    with dspy.context(lm=lm, adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
+        result = run_variant(task,'continuous_emit',lm,RLMConfig(max_iters=2),site=1)
+    assert not result['correct'] and not result['abstained']
+    assert result['rollouts'][0]['events'][0]['applied']
+    assert len(result['rollouts'][0]['events']) == 2
+    assert not result['rollouts'][0]['protocol_violations']
+
+
 def test_real_rlm_serialization_usage_and_fresh_interpreters():
     lm = DummyLM([
         {'reasoning': 'scripted fixture', 'code': "assert 'previous_call' not in globals()\nprevious_call = 1\nSUBMIT(result={'status': 'supported', 'value': accepted_facts[0]['value'], 'evidence': [], 'assumptions': []})"},

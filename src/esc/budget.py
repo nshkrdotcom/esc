@@ -42,7 +42,7 @@ class EpisodeLedger:
                 self.failed = True
                 raise BudgetAccountingError("Request journal write failed; stopping dispatch") from exc
 
-    def reserve(self, generation, *, model=None, input_mode=None):
+    def reserve(self, generation, *, model=None, input_mode=None, call_role=None):
         if type(generation) is not int or generation < 1:
             raise ValueError("Generation allowance must be a positive integer")
         with self.lock:
@@ -61,7 +61,8 @@ class EpisodeLedger:
             self.pending[self.next_id] = cap
             self.calls += 1
             self._emit("request_start", request_id=self.next_id, model=model,
-                       input_mode=input_mode, requested_generation=generation, capped_generation=cap)
+                       input_mode=input_mode, call_role=call_role,
+                       requested_generation=generation, capped_generation=cap)
             return self.next_id, cap
 
     def commit(self, handle, usage, budget_truncated=False, finish_reasons=None):
@@ -138,7 +139,8 @@ class BudgetedLM(dspy.LM):
         if kwargs.get("cache", self.cache) or self.num_retries:
             raise BudgetAccountingError("Budgeted calls require cache=False and num_retries=0")
         requested = kwargs.get("max_tokens", self.kwargs["max_tokens"])
-        handle, cap = ledger.reserve(requested, model=self.model, input_mode=input_mode)
+        handle, cap = ledger.reserve(requested, model=self.model, input_mode=input_mode,
+                                     call_role=getattr(self, 'esc_role', None))
         kwargs["max_tokens"] = cap
         return ledger, handle, cap < requested
 

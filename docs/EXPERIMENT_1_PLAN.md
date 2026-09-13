@@ -3,6 +3,24 @@
 [HANDOFF.md](../HANDOFF.md) is the operational entry point: exact pending command,
 current evidence, completion boundaries, and file-level implementation checklist.
 
+## Implementation update: frozen study workflow
+
+The new [study runbook](STUDY_RUNBOOK.md) supersedes the future-tense implementation
+items below where marked implemented here. `esc study-*` now supplies common
+public-row parsing, in-trajectory continuous emission hooks, explicit isolated
+and shared-history ablations, randomized frozen plans, request replay, repeated
+world-cluster statistics and four figure exports. Candidate and accepted-state
+interventions are separate configuration modes. Offline verification: 166 tests,
+including real interpreter persistence and receipt-based corruption.
+
+The M2 policy decision is an exploratory **quality-versus-measured-cost** study at
+prespecified soft allowance bands. It does not establish hard/equal total compute,
+and the original equal-compute H₁ remains open. M3/M4 code is implemented and under
+live development validation; repeated held-out M5 data is not yet collected.
+Receipt compliance, complete accounting, adequate world clusters and honest
+coverage/cost reporting remain acceptance gates. An implementation checklist is
+not evidence that those gates passed.
+
 ## Audit of the proposed study
 
 The runtime and first controlled-domain benchmark milestones are complete; the confirmatory study is not. The legacy and relational development smoke checks each contain one task and one outer repetition. They cannot estimate horizon decay, pass⁵, EPCₖ, ablation effects, or confidence intervals. No GEPA compile or Flex search has occurred. There is no basis for a numeric percentage-complete claim: the execution framework is working, but the experimental controls are the central remaining work.
@@ -14,11 +32,11 @@ The runtime and first controlled-domain benchmark milestones are complete; the c
 | 90-second research entry point | Root RESEARCH_NOTE.md implemented | Complete; figures pending |
 | Comparable tasks at actual depths 2/4/8/16 | Exact relational depth implemented; broader semantic depth untested | M1 complete within scope |
 | Equal information without answer-aware source routing | Full corpus access in relational_v2; legacy remains confounded | M1 complete within scope |
-| Shared episode accounting | Soft allowance implemented; hard/matched policy pending | M2 partial |
-| Matched live A/B/C intervention | Not implemented | M3 |
-| Faithful primitive ablations | Partial names/behaviors only | M4 |
-| Repeated held-out study and uncertainty | Not performed | M5 |
-| Four figures and paired failure trace | No qualifying data | M5 |
+| Shared episode accounting | Soft allowance implemented; exploratory quality/cost policy chosen; hard matching absent | M2 scoped |
+| Live in-trajectory intervention | Receipt hooks implemented; model compliance under validation | M3 validation |
+| Faithful primitive ablations | Explicit study variants and context/interpreter tests implemented | M4 validation |
+| Repeated held-out study and uncertainty | Frozen runner/statistics implemented; held-out data not collected | M5 execution pending |
+| Four figures and paired failure trace | Exporter works on development data; no qualifying headline results | M5 |
 | GEPA/Flex | Stubs/design only | After Experiment 1 |
 
 ## M1 — controlled relational benchmark (implemented and validated)
@@ -76,6 +94,10 @@ Calibrate budget bands on development worlds only. B votes over the rollouts it 
 
 ## M3 — comparable live fault intervention
 
+Implemented in `study_protocol.py` and `study_systems.py`; requirements below
+remain validation criteria. A first continuous live episode skipped receipts, so
+successful offline interception alone is insufficient evidence of live compliance.
+
 Add an explicit result-emission hook inside A/B's persistent RLM invocation, shared with C's candidate boundary. The benchmark public schedule requires emitting each transition before advancing; record deviations. Preserve A's interpreter/history between emissions. Confirm the hook does not introduce C's projection or validation semantics into A. Keep the uninstrumented A baseline and quantify instrumentation effects.
 
 Select intervention site/value from public world structure and a fixed seed; choose a different valid entity, not a `CORRUPT_` sentinel. Apply at the same reached transition, after emission and before the next transition. In C's candidate-intervention arm, this is before witness promotion. Do not conflate it with accepted-state corruption. Save clean/intervened runs paired by world, condition, outer repeat and site.
@@ -84,9 +106,16 @@ Measure EPC at each graph distance over actually applied interventions. Also rep
 
 ## M4 — real ablations
 
+Implemented as separate study variants; historical pilot modes remain unchanged.
+See the architecture table in [STUDY_RUNBOOK.md](STUDY_RUNBOOK.md).
+
 Implement the five variants in RESEARCH_NOTE.md behind explicit architecture configurations. Verify context contents using capture workers: which raw history, summaries, typed facts and witness information crosses each transition. Give all variants the same task, source access, LM, public operation rules and episode budget. Separate schema enforcement from assurance checks. Reject unsupported combinations instead of aliasing names to incomplete behavior.
 
 ## M5 — analysis and results artifact
+
+The frozen runner, independent auditor, binomial/world-cluster statistics and
+four-figure exporter are implemented. The following describes required held-out
+execution and interpretation, not completed results.
 
 Freeze implementation, model digest/template, budget policy, corpus seeds/splits and analysis before held-out evaluation. First run a small development pilot across all depths to inspect saturation, cost, failure types and feasibility; choose sample size using observed uncertainty/compute, not desired effect direction. No billion-token study before controls pass.
 

@@ -1,0 +1,11 @@
+{
+  "split": "dev",
+  "seed": 84,
+  "worlds": 1,
+  "repetitions": 1,
+  "depths": [2],
+  "budgets": [24000],
+  "variants": ["continuous_emit", "shared_verified", "isolated_verified"],
+  "interventions": true,
+  "intervention_mode": "accepted_state"
+}

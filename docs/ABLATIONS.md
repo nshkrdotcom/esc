@@ -1,5 +1,13 @@
 # Ablation implementation status
 
+The table below describes **historical pilot modes**, not the new study variants.
+The [study workflow](STUDY_RUNBOOK.md) now has explicit `isolated_raw`,
+`isolated_typed`, `shared_verified`, and `isolated_verified` systems alongside
+instrumented/uninstrumented continuous baselines. They have context-capture and
+real-interpreter tests; live development validation is ongoing. `shared_verified`
+retains one native RLM history/interpreter rather than substituting summaries.
+Select these study variants in a frozen JSON config, not via `ablation_mode`.
+
 Only `ablation_mode="none"` is included in the pilot runner. The other modes are programmatic prototypes, not validated independent experimental conditions.
 
 | Mode | Actual behavior | Limitation |

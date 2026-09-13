@@ -111,3 +111,24 @@ def test_journal_failure_blocks_backend_dispatch(monkeypatch):
         model.forward(prompt='x')
     assert not called
     assert ledger.snapshot()['accounting_failed']
+
+
+def test_role_copies_share_ledger_without_changing_provider_options(tmp_path, monkeypatch):
+    seen=[]
+    def backend(self, **kwargs):
+        seen.append((self.model, dict(self.kwargs), kwargs))
+        return {'usage':{'prompt_tokens':4,'completion_tokens':1}}
+    monkeypatch.setattr(dspy.LM,'forward',backend)
+    journal=RequestJournal(tmp_path/'requests.jsonl')
+    ledger=EpisodeLedger(100,event_sink=journal.for_episode({'task_id':'t'}))
+    root=BudgetedLM('openai/fixture',cache=False,num_retries=0,max_tokens=10)
+    root.esc_role='root'
+    child=root.copy()
+    child.esc_role='recursive'
+    with dspy.context(esc_ledger=ledger):
+        root.forward(prompt='same')
+        child.forward(prompt='same')
+    assert seen[0]==seen[1]
+    assert ledger.snapshot()['measured_tokens']==10
+    starts=[json.loads(s) for s in journal.path.read_text().splitlines() if json.loads(s)['event']=='request_start']
+    assert [e['call_role'] for e in starts]==['root','recursive']

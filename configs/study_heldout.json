@@ -1,0 +1,11 @@
+{
+  "split": "test",
+  "seed": 1001,
+  "worlds": 2,
+  "repetitions": 5,
+  "depths": [2, 4, 8, 16],
+  "budgets": [24000, 48000],
+  "variants": ["continuous", "continuous_emit", "search_emit", "isolated_raw", "isolated_typed", "shared_verified", "isolated_verified"],
+  "interventions": true,
+  "bootstrap_samples": 1000
+}

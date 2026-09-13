@@ -1,0 +1,571 @@
+{
+  "scope": "First development study mechanics; one world, depth2, one repeat. Not comparative reliability.",
+  "configuration": {
+    "split": "dev",
+    "seed": 81,
+    "schedule_seed": 901,
+    "worlds": 1,
+    "repetitions": 1,
+    "depths": [
+      2
+    ],
+    "budgets": [
+      24000
+    ],
+    "variants": [
+      "continuous_emit",
+      "isolated_typed",
+      "isolated_verified"
+    ],
+    "interventions": true,
+    "n_samples": 3,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "max_tokens": 1024,
+    "num_ctx": 8192,
+    "bootstrap_samples": 1000
+  },
+  "plan_hash": "ca5574a15d28714f0a270549da5afc01d60158431bd862c1399996d348f02b47",
+  "source_identity": "159e18b5b88874757afbd9f4b678f76b2fcbc4366257b74e6ad3f42c57540cdb",
+  "source_archive_available": false,
+  "accounting": {
+    "valid": true,
+    "episodes": 6,
+    "measured_tokens": 43684,
+    "compute_matched": false,
+    "plan_hash": "ca5574a15d28714f0a270549da5afc01d60158431bd862c1399996d348f02b47"
+  },
+  "runs": [
+    {
+      "variant": "continuous_emit",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 6947,
+        "completion_tokens": 807,
+        "measured_tokens": 7754,
+        "overshoot": 0,
+        "remaining": 16246,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": null,
+          "events": [],
+          "protocol_violations": [
+            "Final answer bypassed incomplete or rejected transition"
+          ],
+          "model_output_error": null,
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "isolated_verified",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 4285,
+        "completion_tokens": 461,
+        "measured_tokens": 4746,
+        "overshoot": 0,
+        "remaining": 19254,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": null,
+          "events": [
+            {
+              "step_id": "N1",
+              "input_value": "e42a74df3d8de",
+              "proposed": "e0d942c5ef8c6",
+              "value": "eb026c9132afb",
+              "evidence": [
+                {
+                  "source_id": "s36e563dbb99e",
+                  "span": "{\"subject\": \"e42a74df3d8de\", \"relation\": \"r30905e89359e\", \"object\": \"e0d942c5ef8c6\"}"
+                }
+              ],
+              "applied": true,
+              "accepted": false,
+              "reason": "Public rows do not uniquely support the claimed subject/relation/object."
+            }
+          ],
+          "protocol_violations": [],
+          "model_output_error": null,
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "isolated_verified",
+      "site": null,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 4278,
+        "completion_tokens": 497,
+        "measured_tokens": 4775,
+        "overshoot": 0,
+        "remaining": 19225,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": null,
+          "events": [],
+          "protocol_violations": [],
+          "model_output_error": "Adapter ChatAdapter failed to parse the LM response. \n\nLM Response: [[ ## reasoning ## ]]\nThe first few rows show that each row has 'subject', 'relation', 'object', 'source_id', and 'span' fields. I need to filter these rows for the specific subject \"e42a74df3d8de\" and relation \"r30905e89359e\". Since the `facts` list is empty, I will process the `rows` variable directly. I'll loop through all rows and check for a match on the subject and relation. If found, I'll extract the 'object', 'source_id', and 'span' from that row and format them into the required JSON structure.\nCode:\n```python\n# Filter rows based on the given subject and relation\ntarget_subject = \"e42a74df3d8de\"\ntarget_relation = \"r30905e89359e\"\n\nmatching_row = None\nfor row in rows:\n    if row[\"subject\"] == target_subject and row[\"relation\"] == target_relation:\n        matching_row = row\n        break\n\n# Prepare the result based on the matching row\nif matching_row:\n    result = {\n        \"status\": \"supported\",\n        \"value\": matching_row[\"object\"],\n        \"evidence\": [{\n            \"source_id\": matching_row[\"source_id\"],\n            \"span\": matching_row[\"span\"]\n        }],\n        \"assumptions\": [],\n        \"raw_output\": None\n    }\nelse:\n    result = {\n        \"status\": \"insufficient\",\n        \"value\": None,\n        \"evidence\": [],\n        \"assumptions\": [],\n        \"raw_output\": None\n    }\n\n# Submit the final result\nSUBMIT(result)\n``` \n\nExpected to find output fields in the LM response: [reasoning, code] \n\nActual output fields parsed from the LM response: [reasoning] \n\n",
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "continuous_emit",
+      "site": null,
+      "correct": true,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 5852,
+        "completion_tokens": 898,
+        "measured_tokens": 6750,
+        "overshoot": 0,
+        "remaining": 17250,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": "e0d942c5ef8c6",
+          "events": [
+            {
+              "step_id": "N1",
+              "input_value": "e42a74df3d8de",
+              "proposed": "e0d942c5ef8c6",
+              "value": "e0d942c5ef8c6",
+              "evidence": [
+                {
+                  "source_id": "s9a3a7d934dcc",
+                  "span": "0-28"
+                }
+              ],
+              "applied": false,
+              "accepted": true,
+              "reason": null
+            },
+            {
+              "step_id": "N2",
+              "input_value": "e0d942c5ef8c6",
+              "proposed": "e0d942c5ef8c6",
+              "value": "e0d942c5ef8c6",
+              "evidence": [
+                {
+                  "source_id": "s9a3a7d934dcc",
+                  "span": "0-28"
+                }
+              ],
+              "applied": false,
+              "accepted": true,
+              "reason": null
+            }
+          ],
+          "protocol_violations": [],
+          "model_output_error": null,
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "isolated_typed",
+      "site": null,
+      "correct": true,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 8906,
+        "completion_tokens": 1016,
+        "measured_tokens": 9922,
+        "overshoot": 0,
+        "remaining": 14078,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 4,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": "e0d942c5ef8c6",
+          "events": [
+            {
+              "step_id": "N1",
+              "input_value": "e42a74df3d8de",
+              "proposed": "e0d942c5ef8c6",
+              "value": "e0d942c5ef8c6",
+              "evidence": [
+                {
+                  "source_id": "s36e563dbb99e",
+                  "span": "{\"subject\": \"e42a74df3d8de\", \"relation\": \"r30905e89359e\", \"object\": \"e0d942c5ef8c6\"}"
+                }
+              ],
+              "applied": false,
+              "accepted": true,
+              "reason": null
+            },
+            {
+              "step_id": "N2",
+              "input_value": "e0d942c5ef8c6",
+              "proposed": "e0d942c5ef8c6",
+              "value": "e0d942c5ef8c6",
+              "evidence": [
+                {
+                  "source_id": "se3fbae52533b",
+                  "span": "{\"subject\": \"e0d942c5ef8c6\", \"relation\": \"rfc305e83d6b3\", \"object\": \"e0d942c5ef8c6\"}"
+                }
+              ],
+              "applied": false,
+              "accepted": true,
+              "reason": null
+            }
+          ],
+          "protocol_violations": [],
+          "model_output_error": null,
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            },
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "isolated_typed",
+      "site": 1,
+      "correct": false,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 8850,
+        "completion_tokens": 887,
+        "measured_tokens": 9737,
+        "overshoot": 0,
+        "remaining": 14263,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 4,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      },
+      "rollouts": [
+        {
+          "answer": "e38c3f55a349b",
+          "events": [
+            {
+              "step_id": "N1",
+              "input_value": "e42a74df3d8de",
+              "proposed": "e0d942c5ef8c6",
+              "value": "eb026c9132afb",
+              "evidence": [
+                {
+                  "source_id": "s36e563dbb99e",
+                  "span": "{\"subject\": \"e42a74df3d8de\", \"relation\": \"r30905e89359e\", \"object\": \"e0d942c5ef8c6\"}"
+                }
+              ],
+              "applied": true,
+              "accepted": true,
+              "reason": null
+            },
+            {
+              "step_id": "N2",
+              "input_value": "eb026c9132afb",
+              "proposed": "e38c3f55a349b",
+              "value": "e38c3f55a349b",
+              "evidence": [
+                {
+                  "source_id": "saaf1489b1dea",
+                  "span": "{\"subject\": \"eb026c9132afb\", \"relation\": \"rfc305e83d6b3\", \"object\": \"e38c3f55a349b\"}"
+                }
+              ],
+              "applied": false,
+              "accepted": true,
+              "reason": null
+            }
+          ],
+          "protocol_violations": [],
+          "model_output_error": null,
+          "reads": [
+            {
+              "documents": 32,
+              "rows": 256
+            },
+            {
+              "documents": 32,
+              "rows": 256
+            },
+            {
+              "documents": 32,
+              "rows": 256
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "analysis": {
+    "audit": {
+      "valid": true,
+      "episodes": 6,
+      "measured_tokens": 43684,
+      "compute_matched": false,
+      "plan_hash": "ca5574a15d28714f0a270549da5afc01d60158431bd862c1399996d348f02b47"
+    },
+    "scope": "Exploratory quality versus measured cost; H1 not tested at equal compute",
+    "split": "dev",
+    "worlds": 1,
+    "repetitions": 1,
+    "warning": "Few world clusters and saturated cells can make intervals unreliable or unidentifiable.",
+    "reliability": [
+      {
+        "variant": "continuous_emit",
+        "budget": 24000,
+        "depth": 2,
+        "n": 1,
+        "correct": 1,
+        "accuracy": 1.0,
+        "interval": null,
+        "tokens": 6750.0,
+        "coverage": 1.0,
+        "exhausted": 0,
+        "dispatched_calls": 3.0,
+        "invocations": 1.0,
+        "protocol_violations": 0,
+        "model_output_errors": 0,
+        "false_promotions": null,
+        "accepted_transitions": 2,
+        "public_row_reads": 1
+      },
+      {
+        "variant": "isolated_typed",
+        "budget": 24000,
+        "depth": 2,
+        "n": 1,
+        "correct": 1,
+        "accuracy": 1.0,
+        "interval": null,
+        "tokens": 9922.0,
+        "coverage": 1.0,
+        "exhausted": 0,
+        "dispatched_calls": 4.0,
+        "invocations": 2.0,
+        "protocol_violations": 0,
+        "model_output_errors": 0,
+        "false_promotions": null,
+        "accepted_transitions": 2,
+        "public_row_reads": 2
+      },
+      {
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "depth": 2,
+        "n": 1,
+        "correct": 0,
+        "accuracy": 0.0,
+        "interval": null,
+        "tokens": 4775.0,
+        "coverage": 0.0,
+        "exhausted": 0,
+        "dispatched_calls": 2.0,
+        "invocations": 1.0,
+        "protocol_violations": 0,
+        "model_output_errors": 1,
+        "false_promotions": 0,
+        "accepted_transitions": 0,
+        "public_row_reads": 1
+      }
+    ],
+    "repeatability": [
+      {
+        "variant": "continuous_emit",
+        "budget": 24000,
+        "pass_at_5": null,
+        "pass_all_5": null
+      },
+      {
+        "variant": "isolated_typed",
+        "budget": 24000,
+        "pass_at_5": null,
+        "pass_all_5": null
+      },
+      {
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "pass_at_5": null,
+        "pass_all_5": null
+      }
+    ],
+    "decay": [
+      {
+        "variant": "continuous_emit",
+        "budget": 24000,
+        "beta": null,
+        "interval": null,
+        "unidentified_bootstrap_samples": 0
+      },
+      {
+        "variant": "isolated_typed",
+        "budget": 24000,
+        "beta": null,
+        "interval": null,
+        "unidentified_bootstrap_samples": 0
+      },
+      {
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "beta": null,
+        "interval": null,
+        "unidentified_bootstrap_samples": 0
+      }
+    ],
+    "decay_contrasts": [
+      {
+        "budget": 24000,
+        "contrast": "isolated_verified minus continuous_emit",
+        "difference": null,
+        "interval": null
+      }
+    ],
+    "propagation": [
+      {
+        "variant": "isolated_typed",
+        "budget": 24000,
+        "distance": 1,
+        "exposures": 1,
+        "wrong": 1,
+        "correct": 0,
+        "abstained": 0,
+        "unreached": 0,
+        "candidate_wrong": 1,
+        "protocol_violations": 0,
+        "epc": 1.0,
+        "interval": null
+      },
+      {
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "distance": 1,
+        "exposures": 1,
+        "wrong": 0,
+        "correct": 0,
+        "abstained": 0,
+        "unreached": 1,
+        "candidate_wrong": 0,
+        "protocol_violations": 0,
+        "epc": 0.0,
+        "interval": null
+      }
+    ],
+    "interventions": [
+      {
+        "episode_id": "8d8b1eb8b7f9aaabcdf9b1c9",
+        "rollout": 0,
+        "variant": "continuous_emit",
+        "budget": 24000,
+        "reached": false,
+        "selected_rollout": false,
+        "ensemble_correct": false,
+        "applied": false,
+        "wrong_after_intervention": false,
+        "protocol_violations": 1
+      },
+      {
+        "episode_id": "5cb37d3d57101850413f4a0e",
+        "rollout": 0,
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "reached": true,
+        "selected_rollout": false,
+        "ensemble_correct": false,
+        "applied": true,
+        "wrong_after_intervention": true,
+        "protocol_violations": 0
+      },
+      {
+        "episode_id": "31662c1e0aa42887173063e9",
+        "rollout": 0,
+        "variant": "isolated_typed",
+        "budget": 24000,
+        "reached": true,
+        "selected_rollout": false,
+        "ensemble_correct": false,
+        "applied": true,
+        "wrong_after_intervention": true,
+        "protocol_violations": 0
+      }
+    ],
+    "intervention_mode": "candidate",
+    "analysis_source_identity": "e98d1e699a8b42cee9ffa31086be62e79f09c90353179b5ee339674f3a3bdb20"
+  }
+}

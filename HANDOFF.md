@@ -1,240 +1,137 @@
-# Handoff — M2 request accounting and live validation
+# ESC handoff: frozen relational study workflow
 
-## Start here
-
-**Completion boundary:** the implementation and handoff are ready for the next
-development validation. The confirmatory experiment is not complete. M0/M1 are
-complete, M2 request accounting and live exhaustion validation work, the
-matched-cost policy is pending, and M3–M5 are not implemented.
-
-The shared **soft** episode allowance is implemented and offline-tested. Experiment
-1 is still a development pipeline, not a valid H₁ study. Do not start a large
-sweep, GEPA, or publish comparative claims yet. No experiment is running at this
-handoff. Binding, generous, and four-depth checks have completed; the next gate is the cost
-policy, informed by [M2_VALIDATION.md](docs/M2_VALIDATION.md). Do not repeat a
-historical run just because an older handoff called it pending.
-
-Read [budget semantics](docs/EPISODE_BUDGET.md), then the
-[research gates](docs/EXPERIMENT_1_PLAN.md). [RESEARCH_NOTE.md](RESEARCH_NOTE.md)
-is the external-facing entry point; its headline results intentionally remain empty.
-
-## Thesis and intended contribution
+## Thesis and evidence boundary
 
 **Can stochastic reasoning be made composable without first making every local
-reasoner reliable?** ESC proposes that persistent epistemic state should be
-separate from linguistic reasoning history. Each transition receives a fresh
-context compiled from typed accepted facts and permitted evidence; externally
-checkable witnesses govern what becomes persistent state. Reasoning trajectories
-remain in an audit log rather than becoming the next invocation's assumptions.
+reasoner reliable?** ESC separates persistent epistemic state from linguistic
+history. Each isolated transition receives projected typed state and public
+evidence; a witness governs promotion. The continuous baseline retains its native
+RLM history/interpreter. We want to measure depth-dependent reliability, error
+propagation, repeatability, and which primitives cause any difference.
 
-The primary hypothesis is that, at equal model, available information and
-defensibly controlled inference cost, ESC has a shallower decline in final success
-as dependency depth grows than continuous RLM reasoning. In
-`log P(success) = alpha - beta * depth`, the intended finding is a smaller beta
-for ESC, with uncertainty that supports the difference. A search-heavy baseline
-must test whether extra trajectories reproduce any gain. No positive finding is
-assumed or required.
+The original H₁ requires equal model, information, and compute. This backend
+currently provides a **soft** allowance with measured prompt reconciliation, not
+a hard total-token bound. The new study uses prespecified allowance bands and
+**quality versus actual measured cost**. `compute_matched=false` stays explicit.
+This narrower exploratory study cannot confirm equal-compute H₁ by relabeling
+the allowance. No positive outcome is assumed or required.
 
-The supporting questions are whether local errors stop at state boundaries,
-whether repeated-run success improves alongside searchable success, and which
-primitive—fresh context, typed state, or witness promotion—causes any effect.
-Measure coverage alongside containment: refusing every task is not reliable
-composition. Similar slopes, a search baseline matching ESC, or gains explained
-by verifier strength are useful negative results.
+The common parser, transition hooks, explicit ablations, frozen randomized plans,
+independent accounting replay, world-cluster analysis, and four figure exports
+are implemented. Development validation is ongoing. A full held-out study has
+**not** completed. GEPA/Flex remain deferred.
 
-The budget work serves that thesis by making actual episode cost and exhaustion
-visible across architectures. It is infrastructure for a fair comparison, not
-evidence for the hypothesis. So far we have working mechanics and narrow live
-checks; we have **not** demonstrated improved reliability scaling or fault containment.
+## Implemented and tested
 
-## Completed and verified
+- Local Qwen3-14B Q4_K_M with corrected non-thinking Ollama template, uncached
+  DSPy RLM root/subcalls, context-scoped shared ledger and durable request journal.
+- `relational_v2`: exact depths 2/4/8/16, paired worlds, fixed equally accessible
+  corpus, opaque sources, strict Type I public-row witnesses. This is computational
+  pointer following, not broad semantic inference.
+- Every study condition gets `read_rows()`: all public rows with exact source/span,
+  no task-specific selection and no evaluator labels.
+- Native continuous RLMs call `emit` inside their trajectory; isolated variants
+  call the same protocol at the worker boundary. Seeded alternate valid entities,
+  reached/applied records, receipt compliance, and separate candidate versus
+  accepted-state corruption modes are implemented.
+- Seven variants: `continuous`, `continuous_emit`, `search_emit`, `isolated_raw`,
+  `isolated_typed`, `shared_verified`, `isolated_verified`. Shared variants retain
+  one native interpreter/history. Isolated variants create a new RLM per hop.
+  Typed-unverified facts retain evidence with candidate assurance. Historical
+  pilot ablation names remain prototypes; use these new variants for comparisons.
+- Frozen model/runtime/source archive, randomized complete episode schedule,
+  fsynced results/requests, no overwrite, no silent resume, incomplete-batch rejection.
+- Paired world bootstrap, binomial log-link decay/contrasts, pass@5/pass⁵, actual
+  cost/coverage/errors, downstream denominators, four PNG/SVG figures and a real
+  clean/intervened trace when available. Degenerate intervals and unidentifiable
+  slopes are unavailable rather than falsely precise.
+- Last full verification: **166 tests passed** using
+  `ESC_TEST_RLM=1 uv run pytest -q`. Tests include actual Deno/Pyodide receipts,
+  retained continuous scratch state, fresh contexts, candidate/state corruption,
+  label-poisoned public-input solvers, and accounting/integrity failures.
 
-- M0: local Qwen3-14B Q4_K_M serving template, fresh RLM execution, usage/events,
-  diagnostics and persistent per-episode results.
-- M1: `relational_v2`, actual relational depths 2/4/8/16, paired worlds, opaque
-  source IDs, full corpus access for A/B/C, public-row deterministic witnesses.
-- M2 initial implementation: locked context-scoped ledger; synchronous/async LM
-  interception; generation reservations; measured prompt reconciliation; shared
-  B rollouts/C steps; durable exhaustion after swallowed REPL errors; partial B
-  votes and C audit preservation; runner continues exhausted episodes.
-- Request-boundary journaling and `uv run esc audit-budget <directory>` now replay
-  reservations, measured responses, blocked attempts, and completed episode totals.
-  The journal covers rejected responses that never enter DSPy history.
-- Malformed model outputs now become measured unsuccessful attempts under
-  `record_failed_attempt_v1`, preserving C's audit and B's other rollout votes.
-  The aborted first depth sweep is retained as evidence for this change.
-- `ESC_TEST_RLM=1 uv run pytest -q`: **139 passed**, including an actual scripted
-  Deno/Pyodide recursive-call exhaustion test; no inference needed for these tests.
-  Batched recursive calls, concurrent journal attribution, malformed/tampered
-  records, and journal-write failures also have offline coverage.
-- Final preparation fixes preserve Ctrl-C/cancellation and original provider
-  diagnostics, reject noninteger allowances before dispatch, mark malformed usage
-  as unknown consumption, and reject orphaned output artifacts. The exported
-  `check_hypothesis_h1` helper now explicitly returns `h1_supported=None`; its
-  optional point-estimate comparison is descriptive only.
-- Nonbinding live check `outputs/budget_generous_001`: one development depth-2
-  world, one outer repeat, allowance 100,000 per condition. A/B/C measured
-  **16,932 / 47,208 / 4,874 tokens**, with 5/13/2 dispatched calls. A/B correct;
-  C incorrect. All ledger reservations settled, no unknown usage or exhaustion.
-  This run started before the final reduced-cap truncation handling adjustment;
-  that adjustment is offline-tested and was not exercised by this nonbinding run.
-- Compact evidence is versioned in
-  [docs/evidence/budget_generous_001.json](docs/evidence/budget_generous_001.json).
-  Full local output directories are ignored by Git. Do not expect them in a clone.
-- Current binding and generous request-audited results are in
-  [M2_VALIDATION.md](docs/M2_VALIDATION.md), alongside the first aborted depth
-  calibration and the changed malformed-output failure policy. The older
-  `budget_generous_001` numbers above remain a historical check, not the latest run.
-- `budget_depth_dev_003`: all 12 development episodes completed and passed journal
-  replay (200,393 tokens; four exhausted episodes; one model-output-error episode).
-  `_001` failed before the output-error fix; `_002` was interrupted after 10/12.
-  Both incomplete batches are preserved and excluded from comparative analysis.
-  C's early provenance failures and A's all-correct outcomes on this single world
-  preclude meaningful slope estimation. Full results are in the validation report.
-- Follow-up interfaces: all conditions now receive the same JSON document list,
-  preserving each source ID beside its content. Continuous output explicitly
-  supports typed null abstention; B charges but does not vote for it. Both contracts
-  are versioned in the manifest. See [INTERFACE_CONTRACT.md](docs/INTERFACE_CONTRACT.md).
-  Budget audits now show actual cost disparities by depth; matching remains unproved.
-- `interface_v2_dev_001`: dev seed 43, depth 2, one repetition completed and passed
-  replay (51,782 tokens). A incorrect, B correct with exhaustion, C abstained.
-  C misread the document wrapper, then searched only the first document. The
-  interface is runtime-compatible; improved lookup reliability is not established.
-  The next interface work is adherence measurement on disjoint development worlds,
-  not declaring provenance failures solved. The contract document retains the trace.
+## Live evidence and current processes
 
-## Exact next commands
+Historical checks are in [M2_VALIDATION.md](docs/M2_VALIDATION.md) and
+[INTERFACE_CONTRACT.md](docs/INTERFACE_CONTRACT.md). They exposed source-header
+parsing, wrong-source citations, malformed output and incomplete search. They
+established accounting, not an ESC advantage.
 
-Run from the repository root (this workstation: `/home/home/p/g/n/esc`).
-Use `uv` exclusively for Python. The local Ollama model alias is
-`esc-qwen3:14b-nothink`; setup is in [RUNTIME_CONFIGURATION.md](docs/RUNTIME_CONFIGURATION.md).
-Do not substitute another model/template silently. Deno is required for RLM.
+`outputs/study_dev_001` completed six episodes on one depth-2 development world:
+**43,684 tokens**, independent request audit passed. A typed-isolated candidate
+corruption crossed the unverified boundary and its descendant was wrong; a
+separate verified episode rejected a corrupted candidate. The continuous
+intervened episode skipped all receipts, so it **cannot support comparable live
+EPC**. A clean verified episode had a measured formatting failure. Four development
+figures and a paired trace exist locally in `analysis/`.
+
+`outputs/study_dev_all_001` was interrupted after 13/52 episodes: no completion
+marker, excluded from analysis. Preserve it.
+`outputs/study_dev_all_002` is the replacement all-variant development gate:
+two worlds, depth 2, one repetition, two allowance bands, and clean/corrupt pairs
+(52 episodes). Check process status and artifacts before starting another run.
+An existing plan or partial `runs.jsonl` is not a completed study.
+
+## Commands and artifacts
+
+Read [STUDY_RUNBOOK.md](docs/STUDY_RUNBOOK.md) for semantics, variants, gates,
+background execution, and analysis limits. All Python uses `uv`.
 
 ```bash
 uv sync --locked
 ESC_TEST_RLM=1 uv run pytest -q
-uv run esc run --help
-ollama list
+uv run esc study-freeze configs/study_dev_all.json outputs/study_dev_next
+uv run esc study-run outputs/study_dev_next
+uv run esc study-audit outputs/study_dev_next
+uv run esc study-analyze outputs/study_dev_next
 ```
 
-If the alias is missing, follow the runtime setup before proceeding. Merely
-running `ollama list` does not assert that the required alias exists. Do not pull
-weights or launch inference as part of a documentation/offline check.
+Choose a new directory. Freeze reads local model metadata but generates no tokens.
+Changed code, lockfile, model or template requires a new plan. `source.zip`
+preserves the actual frozen source; analysis records its own code hash.
+Do not edit old plans to evade identity checks.
 
-The local binding and generous runs can now be audited without inference:
+The held-out template `configs/study_heldout.json` has **1,040 episodes**: two
+worlds, four depths, five outer repeats, two bands, all variants/pairs. It is a
+template, not a completed or automatically justified study. Two clusters provide
+weak uncertainty; choose adequate world count from development evidence before
+freeze. User authorization to proceed exists, but interpretation still requires
+protocol feasibility and complete accounting.
 
-```bash
-uv run esc audit-budget outputs/budget_journal_binding_001
-uv run esc audit-budget outputs/budget_journal_generous_001
-uv run esc audit-budget outputs/budget_depth_dev_003
-uv run esc audit-budget outputs/interface_v2_dev_001
-```
+| Work | Main files |
+|---|---|
+| Public parser | `src/esc/benchmark/public_rows.py` |
+| Interventions | `src/esc/study_protocol.py` |
+| Architectures | `src/esc/study_systems.py` |
+| Frozen plans/execution | `src/esc/study.py`, `configs/` |
+| Request/episode audit | `src/esc/study_audit.py` |
+| Statistics/figures/trace | `src/esc/study_analysis.py` |
+| CLI | `src/esc/cli.py` |
 
-These commands need the local raw artifacts; a fresh clone instead has the
-versioned evidence snapshots. All four checks passed. Prompt usage exceeded 1,000 in
-the binding run; this validates recorded soft-budget exhaustion, not hard
-enforcement. The runner rejects overwrites and has **no resume command**.
+## Remaining work, in order
 
-For future validation runs, check `experiment_1_summary.json`, `runs.jsonl`,
-`requests.jsonl`, `events.jsonl`, and any `failure.json`. Accept a binding check only if all three episodes are persisted,
-at least one exhausts, ledger arithmetic reconciles, pending/unknown reservations
-are zero, and the sweep finishes. Inspect budget-reduced truncation handling. Preserve
-failures; do not retry until success and omit the earlier attempt. Add a compact
-evidence snapshot and update this handoff after validation.
+1. Finish the all-variant development gate; audit every request and episode.
+   Preserve the interrupted predecessor. Inspect both bands, each variant,
+   emissions, witness decisions, errors, exhaustion and actual cost.
+2. Quantify whether continuous variants actually reach and obey receipts. If
+   compliance fails, report the limitation, fix the common interface on disjoint
+   development worlds, and retain previous attempts. Missing downstream emissions
+   are not evidence of fault containment.
+3. Freeze sufficient held-out sampling and cost analysis from development evidence.
+   The policy is measured quality/cost, not equal-compute H₁. Candidate and
+   accepted-state interventions use separate plans. Retain the uninstrumented
+   comparator to measure the effect of mandatory receipts.
+4. Execute every planned held-out episode with at least five outer repeats, audit,
+   then analyze. Backend/unknown-consumption failures invalidate a batch; no
+   convenient completed-prefix analysis. Formatting errors and exhaustion are
+   measured outcomes, not dropped samples.
+5. Review intervals, saturation, adherence, coverage, cost, promotions and
+   intervention denominators. Rendering four figures does not establish a
+   research result. Retain valid negative or inconclusive findings.
+6. Update [RESEARCH_NOTE.md](RESEARCH_NOTE.md) only with qualifying results and a
+   real paired trace. Keep domain and verification scope explicit. GEPA/Flex and
+   external-corpus replication follow valid fixed-architecture work.
 
-**Telemetry limitation:** `lm_start` means a DSPy call attempt, not backend dispatch.
-Blocked attempts can emit it. Usage from a response rejected by the budget wrapper
-may never enter DSPy history, so its `lm_end` may lack usage. Concurrent callbacks
-also infer usage from shared LM history, which cannot reliably attribute each call.
-Do not claim that counting `lm_start`/`lm_end` proves absence of dispatch or
-reconciles every charged call. Use the new `requests.jsonl` and offline auditor
-instead. This independently replays the ledger's arithmetic, while trusting the
-same provider-reported usage; it does not independently measure GPU work.
-
-## Granular remaining roadmap, in order
-
-1. **M2 accounting validation — implemented:** binding and generous checks pass,
-   including independent journal replay. Preserve these regression checks when
-   changing allocation policy. Backend/unknown-usage failures invalidate a batch,
-   while exhaustion is a recorded outcome. B may retain a correct completed vote.
-2. **M2 study policy:** choose and freeze an acceptable cost allocation policy on
-   development worlds. Current policy reserves generation only; prompt overshoot
-   has no guaranteed bound. Investigate a validated exact-template tokenizer or
-   conservative reservation if hard total-token enforcement is required. Version
-   any changed policy, test concurrency again, and document actual versus allowed
-   cost. Keep `compute_matched=false` until a defensible matching criterion exists.
-   Typed-null refusal/voting and a shared JSON document interface are implemented;
-   validate adherence and provenance coverage on additional development worlds.
-   Literal strings remain literal answers, not retrospective abstentions. Keep
-   the strict row witness and equal source access across conditions.
-3. **M2 calibration — first sweep complete:** `budget_depth_dev_003` covers all
-   four depths, but only one world and one repetition. After the policy/interface
-   decisions, use additional development worlds to inspect
-   saturation, refusal/truncation and call counts. Select budget bands without
-   held-out labels. Per-invocation iteration caps differ in aggregate for A/C;
-   report this second resource axis rather than claiming call parity.
-4. **M3 intervention plumbing:** emit intermediate results inside A/B's persistent
-   RLM, preserving its history; instrument C's candidate boundary comparably.
-   Test that instrumentation does not give A C's state projection/verification.
-   Retain an uninstrumented baseline to measure instrumentation effects.
-5. **M3 measurements:** paired clean/intervened worlds with a seeded valid alternate
-   entity. Separate candidate corruption from accepted-state corruption. Record
-   attempted/reached/applied interventions, downstream graph distance, wrong,
-   correct, abstained and unreached outcomes. Separate B rollout effects from the
-   selected ensemble answer. No hidden labels in model tools or voting.
-6. **M4 faithful ablations:** implement isolation-only, shared-history contracts,
-   isolation+typing without witnesses, and full ESC alongside A. Capture actual
-   inputs in tests. Existing `no_typing` and summary modes are not faithful substitutes.
-7. **M5 execution integrity:** freeze model digest/template, code, world splits,
-   budget policy and analysis. Add deterministic randomized/interleaved scheduling
-   and explicit incomplete-batch handling before a long sweep; do not analyze a
-   convenient completed prefix. Resume support, if added, must validate the full
-   manifest and avoid duplicated episodes. Choose sample size from dev uncertainty.
-8. **M5 analysis:** at least five uncached outer repeats on held-out worlds;
-   paired world-cluster uncertainty, appropriate binomial treatment of zero/all
-   success cells, identifiable slope contrasts, pass@5/pass⁵ with complete groups,
-   actual cost/exhaustion distributions. Current descriptive clipped slopes are
-   not inferential results. Report saturation instead of manufacturing a slope.
-9. **Results artifact:** generate the four requested figures and an actual paired
-   failure trace; fill the research-note table only with qualifying observations.
-   Relational pointer-following with strong Type I witnesses is a narrow domain;
-   broaden semantic tasks/verifier ablations before general composability claims.
-10. **Only after valid fixed-architecture results:** implement D/GEPA with saved
-    programs and disjoint train/validation/test worlds; account reflection cost
-    separately. Flex boundary search and external-corpus replication follow.
-
-## Where the next implementation work belongs
-
-| Gate | Main files / new deliverable | Required evidence before closing |
-|---|---|---|
-| M2 accounting and validation (implemented) | `src/esc/budget.py`, `src/esc/journal.py`, `src/esc/audit.py`, `src/esc/workers/usage.py`; budget/journal/interpreter tests | Binding and generous records pass journal replay; preserve concurrency and swallowed-error regressions |
-| M2 outcomes and policy | `src/esc/runner.py`, `src/esc/cli.py`, `src/esc/systems/system_a.py`, `src/esc/systems/system_b.py`, `src/esc/systems/system_c.py`; versioned budget policy | No dropped exhausted episodes; correct partial-vote/audit semantics; documented allocation and cost-matching acceptance criterion |
-| M3 intervention | New intervention module plus worker/RLM hooks and result fields | Same public intervention across architectures, clean/intervened pairs, reached-site denominators, no evaluator leakage |
-| M4 ablations | Explicit architecture configurations and context-capture tests | Each of the five variants in the research note actually receives the advertised history/state/witness inputs |
-| M5 study execution | Runner scheduling/integrity checks and frozen study manifest | Complete held-out groups with at least five outer repeats; no completed-prefix selection; recorded model and corpus identity |
-| M5 analysis | New offline analysis/figure command; extend `src/esc/eval/` | Reproducible world-cluster intervals, four figures, machine-readable counts/costs and a real paired trace |
-| Post-Experiment 1 | `src/esc/systems/system_d.py`, saved optimizer artifacts, external dataset adapters | No stub called optimized; split isolation and reflection cost measured; dataset versions and protocols verified |
-
-Paths in this table are relative to the repository root. Future deliverables have
-no working CLI command yet; do not infer commands from their planned names. Each gate requires
-a small tested patch, an updated status/evidence record, and a reviewable working
-tree before beginning the next gate. Hypothesis support is never a completion
-criterion; valid negative or inconclusive results can close the study.
-
-## Handoff audit
-
-The handoff was checked against code, saved local artifacts, the CLI help, and
-fresh offline tests. The versioned generous-budget snapshot matches
-its saved manifest and all three result/ledger records exactly. Internal document
-file links resolve. The earlier documentation-only audit was followed by live
-M2 validation; the binding check is now complete. Stale failure semantics, legacy-depth wording, and
-unsupported external-benchmark assumptions were corrected. Request accounting
-now has its own journal rather than relying on callback history.
-
-## Working rules for the next agent
-
-Preserve existing artifacts and owner edits. No running background job is expected.
-Do not treat the smoke outcomes as architecture evidence, mock outputs as real
-results, soft allowances as equal spend, or citation existence as semantic truth.
-Keep patches small and tested. A large held-out study remains gated on cost
-policy and study controls; merely reading this document does not authorize one.
+Full local `outputs/` are ignored and absent from clones; compact evidence belongs
+in the repo. Preserve existing work/artifacts. Keep the thesis and actual evidence
+boundary clear in subsequent handoffs.

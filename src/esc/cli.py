@@ -22,6 +22,39 @@ app = typer.Typer(
 console = Console()
 
 
+@app.command('study-freeze')
+def study_freeze(config_file: str, directory: str):
+    """Freeze a JSON study config, public worlds, model identity, and randomized schedule."""
+    import json
+    from pathlib import Path
+    from esc.study import StudyConfig, freeze_study
+    plan = freeze_study(directory, StudyConfig.model_validate(json.loads(Path(config_file).read_text())))
+    typer.echo(f"Frozen {len(plan['episodes'])} episodes in {directory}; no inference started")
+
+
+@app.command('study-run')
+def study_run(directory: str):
+    """Execute a frozen study; rejects changed code/model or previously started batches."""
+    from esc.study import run_study
+    run_study(directory)
+
+
+@app.command('study-audit')
+def study_audit(directory: str):
+    """Replay every request and require all frozen episodes to be present."""
+    import json
+    from esc.study_audit import audit_study
+    typer.echo(json.dumps(audit_study(directory)[0], indent=2))
+
+
+@app.command('study-analyze')
+def study_analyze(directory: str):
+    """Audit a complete batch, then write world-cluster statistics and four figures."""
+    from esc.study_analysis import analyze_study
+    result = analyze_study(directory)
+    typer.echo(f"Analysis saved; {result['scope']}")
+
+
 @app.command()
 def audit_budget(directory: str = typer.Argument(..., help="Completed run directory with requests.jsonl")):
     """Reconcile request records and episode accounting without model calls."""

@@ -1,0 +1,420 @@
+{
+  "status": "interrupted; no complete.json; excluded from study analysis",
+  "planned_episodes": 52,
+  "completed_episodes": 13,
+  "configuration": {
+    "split": "dev",
+    "seed": 82,
+    "schedule_seed": 901,
+    "worlds": 2,
+    "repetitions": 1,
+    "depths": [
+      2
+    ],
+    "budgets": [
+      12000,
+      24000
+    ],
+    "variants": [
+      "continuous",
+      "continuous_emit",
+      "search_emit",
+      "isolated_raw",
+      "isolated_typed",
+      "shared_verified",
+      "isolated_verified"
+    ],
+    "interventions": true,
+    "n_samples": 3,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "max_tokens": 1024,
+    "num_ctx": 8192,
+    "bootstrap_samples": 1000
+  },
+  "plan_hash": "297b254d049d368c37c3754ec258a7b67bd04881f149d66a524dbd49aa49d640",
+  "source_identity": "75681772ff8f8baf98651498c5558ae90f6c448025096dfa8baec9292a06e9e7",
+  "runs": [
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_bce8309345d5e029_d2",
+        "variant": "isolated_typed",
+        "budget": 12000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "6936fd4d877a55fa4dcde4e1"
+      },
+      "variant": "isolated_typed",
+      "site": null,
+      "correct": true,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 5646,
+        "completion_tokens": 745,
+        "measured_tokens": 6391,
+        "overshoot": 0,
+        "remaining": 5609,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "isolated_raw",
+        "budget": 12000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "51b2f04209e8a21f5bd30e74"
+      },
+      "variant": "isolated_raw",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 10967,
+        "completion_tokens": 1063,
+        "measured_tokens": 12030,
+        "overshoot": 30,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 6,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_bce8309345d5e029_d2",
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "65765242218cceb99388cde7"
+      },
+      "variant": "isolated_verified",
+      "site": null,
+      "correct": true,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 9031,
+        "completion_tokens": 939,
+        "measured_tokens": 9970,
+        "overshoot": 0,
+        "remaining": 14030,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 4,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "72e7b15d12072b5484e10518"
+      },
+      "variant": "isolated_verified",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 4318,
+        "completion_tokens": 488,
+        "measured_tokens": 4806,
+        "overshoot": 0,
+        "remaining": 19194,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "isolated_typed",
+        "budget": 12000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "088636f24a2a557a037260b2"
+      },
+      "variant": "isolated_typed",
+      "site": 1,
+      "correct": false,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 3610,
+        "completion_tokens": 705,
+        "measured_tokens": 4315,
+        "overshoot": 0,
+        "remaining": 7685,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "continuous_emit",
+        "budget": 12000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "a6e4aa62db535ade9a0a805d"
+      },
+      "variant": "continuous_emit",
+      "site": null,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 4423,
+        "completion_tokens": 663,
+        "measured_tokens": 5086,
+        "overshoot": 0,
+        "remaining": 6914,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "shared_verified",
+        "budget": 12000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "15beda25d1e10c7daa192e4e"
+      },
+      "variant": "shared_verified",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 6176,
+        "completion_tokens": 654,
+        "measured_tokens": 6830,
+        "overshoot": 0,
+        "remaining": 5170,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 3,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_bce8309345d5e029_d2",
+        "variant": "shared_verified",
+        "budget": 12000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "53d523849a4a8f1e1cee084f"
+      },
+      "variant": "shared_verified",
+      "site": null,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 4240,
+        "completion_tokens": 501,
+        "measured_tokens": 4741,
+        "overshoot": 0,
+        "remaining": 7259,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_bce8309345d5e029_d2",
+        "variant": "isolated_verified",
+        "budget": 24000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "a95397bc80e2f0d963abcbab"
+      },
+      "variant": "isolated_verified",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 3810,
+        "completion_tokens": 311,
+        "measured_tokens": 4121,
+        "overshoot": 0,
+        "remaining": 19879,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "continuous_emit",
+        "budget": 24000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "6a0f1942d376ed0bc8cfb47e"
+      },
+      "variant": "continuous_emit",
+      "site": null,
+      "correct": true,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 1783,
+        "completion_tokens": 470,
+        "measured_tokens": 2253,
+        "overshoot": 0,
+        "remaining": 21747,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 1,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "isolated_raw",
+        "budget": 12000,
+        "repetition": 0,
+        "site": null,
+        "episode_id": "ac7f206ba6e6b56d4280db31"
+      },
+      "variant": "isolated_raw",
+      "site": null,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 11682,
+        "completion_tokens": 1051,
+        "measured_tokens": 12733,
+        "overshoot": 733,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 6,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "shared_verified",
+        "budget": 24000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "bbf3037077b22bf50a0672bd"
+      },
+      "variant": "shared_verified",
+      "site": 1,
+      "correct": false,
+      "abstained": true,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 3746,
+        "completion_tokens": 525,
+        "measured_tokens": 4271,
+        "overshoot": 0,
+        "remaining": 19729,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "episode": {
+        "task_id": "relational_v2_dev_f11f6b6bcc3cbf56_d2",
+        "variant": "continuous_emit",
+        "budget": 12000,
+        "repetition": 0,
+        "site": 1,
+        "episode_id": "1f5a13e3e102e403367a3fbb"
+      },
+      "variant": "continuous_emit",
+      "site": 1,
+      "correct": false,
+      "abstained": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 12000,
+        "prompt_tokens": 1783,
+        "completion_tokens": 560,
+        "measured_tokens": 2343,
+        "overshoot": 0,
+        "remaining": 9657,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 1,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    }
+  ]
+}

@@ -11,6 +11,14 @@ Start with [RESEARCH_NOTE.md](RESEARCH_NOTE.md) for the hypothesis, actual evide
 
 **Current status: pipeline prototype.** The pre-experiment review fixed execution and measurement bugs, but this is not yet a controlled horizon-scaling study. Read [the review and remaining limitations](docs/PREFLIGHT_REVIEW.md) and [the pilot runbook](docs/RUNBOOK.md) before spending inference compute.
 
+The new [frozen study workflow](docs/STUDY_RUNBOOK.md) implements common public-row
+parsing, candidate/accepted-state intervention hooks, explicit ablations,
+randomized plans, independent accounting replay, and four analysis figures.
+Development validation is ongoing; a repeated held-out study has not completed.
+Its cost policy is quality versus **measured** cost at soft allowance bands,
+not an equal-compute H₁ claim. Use `esc study-*` for this workflow; the historical
+`esc run` pilot remains separate.
+
 ## Implemented pilot
 
 | Condition | Execution |
