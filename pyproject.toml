@@ -1,0 +1,30 @@
+[project]
+name = "esc"
+version = "0.1.0"
+description = "Epistemic State Compilation (ESC): Separating persistent epistemic state from LLM cognition"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "nshkrdotcom", email = "127063941+nshkrdotcom@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dspy>=3.3.1",
+    "numpy>=2.5.3",
+    "pydantic>=2.13.5",
+    "pytest>=9.1.1",
+    "scipy>=1.18.1",
+    "typer>=0.27.2",
+    "rich>=13.0.0",
+]
+
+[project.scripts]
+esc = "esc.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
