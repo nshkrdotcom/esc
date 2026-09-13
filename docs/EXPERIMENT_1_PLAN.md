@@ -51,7 +51,7 @@ matched-compute gate. The following remains the stricter study target.
 Binding and generous live checks now pass independent request-journal replay.
 The request journal covers rejected and concurrent responses without relying on
 DSPy history. A read-only `esc audit-budget` command checks it against saved
-episodes and ledger totals. The 134-test suite includes real batched recursive
+episodes and ledger totals. The 139-test suite includes real batched recursive
 calls and malformed-output handling. A four-depth development sweep exposed a
 model-formatting failure that previously aborted batches; the new recorded
 failure policy counts it as an unsuccessful attempt. See [M2_VALIDATION.md](M2_VALIDATION.md)
@@ -61,6 +61,12 @@ episodes and 200,393 tokens. Four episodes exhausted; one recorded a model-outpu
 error without aborting the batch. Unequal realized costs and C's early provenance
 failures keep the policy and feasibility gates open. One paired development world
 is not a held-out reliability study.
+
+The follow-up [interface contracts](INTERFACE_CONTRACT.md) add explicit typed-null
+abstention and identical JSON document serialization for all conditions. They
+address refusal ambiguity and source-header parsing without changing the witness
+or granting privileged source access. Manifest versions separate these changes
+from earlier runs. Cost audits now expose per-depth spend disparities explicitly.
 
 Implement one accounting owner around the actual LM backend, shared by root/subcalls, all C steps, and all B rollouts. Do not implement independent per-step caps and call them a matched episode budget.
 

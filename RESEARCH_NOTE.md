@@ -92,6 +92,10 @@ for outcomes and the remaining cost-policy gate.
 The completed four-depth development calibration also passes accounting replay,
 but uses only one paired world and one repetition. C exited early in every task;
 costs differed substantially. This is feasibility evidence, not support for H₁.
+A subsequent [versioned interface check](docs/INTERFACE_CONTRACT.md) introduced
+explicit null abstention and a shared JSON corpus representation. Its accounting
+passed, but C still searched incompletely and abstained; it supplies no positive
+reliability evidence.
 
 The primary claim remains untested until compute, corpus access, depth manipulation, repetitions and uncertainty are controlled. Citation existence is not semantic verification. The new relational family uses a deterministic authoritative-row witness, so any eventual benefit there is scoped to Type I checkable transitions; it would not establish the effect for Type II/III reasoning.
 

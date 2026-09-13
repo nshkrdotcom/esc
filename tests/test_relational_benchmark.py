@@ -119,15 +119,13 @@ class PublicLookupWorker:
         self.calls.append((goal, accepted_facts, evidence_context))
         subject = accepted_facts[0].value if accepted_facts else re.search(r'subject is entity (e\w+)', goal)[1]
         relation = re.search(r'whose relation is (r\w+)', goal)[1]
-        source = None
-        for line in evidence_context.splitlines():
-            if line.startswith('--- Document ['):
-                source = line.split('[', 1)[1].split(']', 1)[0]
-            row = parse_row(line)
-            if row and row['subject'] == subject and row['relation'] == relation:
-                dspy.settings.usage_tracker.add_usage('fixture', {'prompt_tokens': 1, 'completion_tokens': 1})
-                return StepResult(status='supported', value=row['object'],
-                                  evidence=[Evidence(source_id=source, span=line)])
+        for document in json.loads(evidence_context):
+            for line in document['content'].splitlines():
+                row = parse_row(line)
+                if row and row['subject'] == subject and row['relation'] == relation:
+                    dspy.settings.usage_tracker.add_usage('fixture', {'prompt_tokens': 1, 'completion_tokens': 1})
+                    return StepResult(status='supported', value=row['object'],
+                                      evidence=[Evidence(source_id=document['source_id'], span=line)])
         raise AssertionError('Missing public row')
 
 

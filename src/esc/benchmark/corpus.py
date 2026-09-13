@@ -1,6 +1,7 @@
 """Corpus representation and projection for EpiDAG tasks."""
 
 from __future__ import annotations
+import json
 
 from pydantic import BaseModel, Field
 
@@ -34,16 +35,13 @@ class DocumentCorpus:
 
     def project(self, allowed_ids: list[str]) -> str:
         """Context compiler for documents: project only permitted document sources."""
-        snippets: list[str] = []
+        snippets: list[dict[str, str]] = []
         for doc_id in allowed_ids:
             if doc_id in self.documents:
                 doc = self.documents[doc_id]
-                snippets.append(f"--- Document [{doc.doc_id}]: {doc.title} ---\n{doc.content}")
-        return "\n\n".join(snippets)
+                snippets.append(dict(source_id=doc.doc_id, title=doc.title, content=doc.content))
+        return json.dumps(snippets, ensure_ascii=False)
 
     def full_context(self) -> str:
-        """Return all documents concatenated (used for Continuous condition baseline)."""
-        snippets: list[str] = []
-        for doc_id, doc in self.documents.items():
-            snippets.append(f"--- Document [{doc.doc_id}]: {doc.title} ---\n{doc.content}")
-        return "\n\n".join(snippets)
+        """Return the same JSON document interface used by projected contexts."""
+        return self.project(list(self.documents))

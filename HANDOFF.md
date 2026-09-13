@@ -63,7 +63,7 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
 - Malformed model outputs now become measured unsuccessful attempts under
   `record_failed_attempt_v1`, preserving C's audit and B's other rollout votes.
   The aborted first depth sweep is retained as evidence for this change.
-- `ESC_TEST_RLM=1 uv run pytest -q`: **134 passed**, including an actual scripted
+- `ESC_TEST_RLM=1 uv run pytest -q`: **139 passed**, including an actual scripted
   Deno/Pyodide recursive-call exhaustion test; no inference needed for these tests.
   Batched recursive calls, concurrent journal attribution, malformed/tampered
   records, and journal-write failures also have offline coverage.
@@ -91,6 +91,17 @@ checks; we have **not** demonstrated improved reliability scaling or fault conta
   Both incomplete batches are preserved and excluded from comparative analysis.
   C's early provenance failures and A's all-correct outcomes on this single world
   preclude meaningful slope estimation. Full results are in the validation report.
+- Follow-up interfaces: all conditions now receive the same JSON document list,
+  preserving each source ID beside its content. Continuous output explicitly
+  supports typed null abstention; B charges but does not vote for it. Both contracts
+  are versioned in the manifest. See [INTERFACE_CONTRACT.md](docs/INTERFACE_CONTRACT.md).
+  Budget audits now show actual cost disparities by depth; matching remains unproved.
+- `interface_v2_dev_001`: dev seed 43, depth 2, one repetition completed and passed
+  replay (51,782 tokens). A incorrect, B correct with exhaustion, C abstained.
+  C misread the document wrapper, then searched only the first document. The
+  interface is runtime-compatible; improved lookup reliability is not established.
+  The next interface work is adherence measurement on disjoint development worlds,
+  not declaring provenance failures solved. The contract document retains the trace.
 
 ## Exact next commands
 
@@ -116,10 +127,11 @@ The local binding and generous runs can now be audited without inference:
 uv run esc audit-budget outputs/budget_journal_binding_001
 uv run esc audit-budget outputs/budget_journal_generous_001
 uv run esc audit-budget outputs/budget_depth_dev_003
+uv run esc audit-budget outputs/interface_v2_dev_001
 ```
 
 These commands need the local raw artifacts; a fresh clone instead has the
-versioned evidence snapshots. All three checks passed. Prompt usage exceeded 1,000 in
+versioned evidence snapshots. All four checks passed. Prompt usage exceeded 1,000 in
 the binding run; this validates recorded soft-budget exhaustion, not hard
 enforcement. The runner rejects overwrites and has **no resume command**.
 
@@ -151,10 +163,10 @@ same provider-reported usage; it does not independently measure GPU work.
    conservative reservation if hard total-token enforcement is required. Version
    any changed policy, test concurrency again, and document actual versus allowed
    cost. Keep `compute_matched=false` until a defensible matching criterion exists.
-   Resolve the continuous worker's literal-`None` refusal/voting semantics before
-   study freeze; current development runs keep their original scoring.
-   Diagnose C's public source-ID handling without weakening its row witness or
-   routing it to answer-bearing documents unavailable to A/B.
+   Typed-null refusal/voting and a shared JSON document interface are implemented;
+   validate adherence and provenance coverage on additional development worlds.
+   Literal strings remain literal answers, not retrospective abstentions. Keep
+   the strict row witness and equal source access across conditions.
 3. **M2 calibration — first sweep complete:** `budget_depth_dev_003` covers all
    four depths, but only one world and one repetition. After the policy/interface
    decisions, use additional development worlds to inspect

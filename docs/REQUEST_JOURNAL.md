@@ -49,6 +49,10 @@ reports; a provider misreport can still affect both. Auditing old directories
 without a journal intentionally fails: historical accounting is not backfilled or
 invented. Accuracy labels and statistical significance are outside this auditor's
 scope. `valid: true` certifies this accounting check only.
+The report also includes `cost_by_depth`: mean tokens per condition, the
+largest/smallest mean ratio (null if the minimum is zero), and maximum episode
+overshoot. `compute_matched` is always false for this soft policy; a ratio close
+to one is not itself a preregistered matching criterion.
 
 ## Validation scope
 

@@ -99,7 +99,17 @@ def audit_budget_run(directory):
                             tokens=total, exhausted=exhausted, overshoot=max(0, total-budget)))
     if seen != expected or grouped:
         raise ValueError("Missing episodes or orphaned journal records")
+    cost_by_depth = {}
+    for depth in sorted({r['depth'] for r in reports}):
+        rows = [r for r in reports if r['depth'] == depth]
+        means = {system: sum(r['tokens'] for r in rows if r['system'] == system)
+                 / sum(r['system'] == system for r in rows) for system in sorted(conditions)}
+        lowest = min(means.values())
+        cost_by_depth[depth] = dict(mean_tokens_by_system=means,
+            largest_to_smallest_mean_ratio=max(means.values()) / lowest if lowest else None,
+            maximum_episode_overshoot=max(r['overshoot'] for r in rows))
     return dict(valid=True, scope="Request accounting only; no hypothesis inference",
+                compute_matched=False, cost_by_depth=cost_by_depth,
                 episodes=len(reports), measured_tokens=sum(r["tokens"] for r in reports),
                 exhausted_episodes=sum(r["exhausted"] for r in reports),
                 model_output_error_episodes=sum(r["model_output_error"] for r in reports), runs=reports)

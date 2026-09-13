@@ -39,6 +39,8 @@ def test_independent_audit_both_budget_regimes(tmp_path, monkeypatch, budget, ex
     assert report['valid'] and report['episodes'] == 12
     assert report['exhausted_episodes'] == exhausted
     assert report['measured_tokens'] == tokens
+    assert report['compute_matched'] is False
+    assert report['cost_by_depth'][2]['largest_to_smallest_mean_ratio'] == (3 if budget == 1000 else 1)
 
 
 @pytest.mark.parametrize('mutation', ['duplicate_end', 'usage', 'missing_run', 'sequence', 'late_dispatch'])

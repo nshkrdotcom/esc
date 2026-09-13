@@ -115,6 +115,8 @@ def run_experiment_1(
         "budget_policy": "soft_generation_reservation_v1" if episode_token_budget else None,
         "request_journal_version": 1 if episode_token_budget else None,
         "model_output_failure_policy": "record_failed_attempt_v1",
+        "corpus_interface": "json_documents_v2",
+        "answer_contract": "nullable_answer_v2",
         "scope": "pipeline pilot; no confirmatory H1 inference",
         "benchmark": benchmark, "split": split,
         "world_width": world_width if benchmark == "relational_v2" else None,

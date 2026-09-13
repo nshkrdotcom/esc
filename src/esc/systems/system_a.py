@@ -88,9 +88,11 @@ class SystemAContinuous(BaseSystem):
                 pred, usage = invoke_with_usage(
                     self.worker, task_description=task.public_description(), corpus_context=full_corpus,
                 )
-                final_answer = getattr(pred, "final_answer", None)
-                if not isinstance(final_answer, str):
-                    raise ModelOutputError("Continuous worker did not return a string final_answer", usage)
+                if not hasattr(pred, "final_answer"):
+                    raise ModelOutputError("Continuous worker omitted final_answer", usage)
+                final_answer = pred.final_answer
+                if final_answer is not None and not isinstance(final_answer, str):
+                    raise ModelOutputError("Continuous worker returned an invalid final_answer type", usage)
             except ModelOutputError as exc:
                 return SystemResult(system_name=self.name, task_id=task.task_id, depth=task.depth,
                     final_answer=None, target_answer=target, is_correct=False, abstained=True,
@@ -98,7 +100,7 @@ class SystemAContinuous(BaseSystem):
                     latency_ms=(time.perf_counter()-start_time)*1000,
                     details={"usage_kind":"measured", "usage":exc.usage,
                              "error_type":"ModelOutputError", "error":str(exc)})
-            final_answer = final_answer.strip() or None
+            final_answer = (final_answer.strip() or None) if final_answer is not None else None
             tokens_used = usage["total_tokens"]
             details.update(usage_kind="measured", usage=usage,
                            trajectory=getattr(pred, "trajectory", None),

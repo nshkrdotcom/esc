@@ -103,12 +103,17 @@ not remove unequal realized-cost confounding by themselves.
 
 ## Remaining implementation implications
 
+The subsequent [interface compatibility check](INTERFACE_CONTRACT.md) on dev seed
+43 completed with 51,782 measured tokens and passed audit. The JSON source/content
+association and typed-null contract are implemented, but C's trace still shows
+incomplete corpus search; no lookup-reliability improvement is claimed.
+
 - Root/subcall/extraction categories and model digest/template identity should be
   made explicit in the frozen study manifest; input-mode heuristics are insufficient.
-- Continuous output currently treats the literal string `None` as an incorrect
-  answer rather than typed abstention. Define the refusal/voting contract before
-  the study, apply it consistently, and preserve current runs under their original
-  semantics. Do not silently rescore the observed majority vote.
+- Continuous output now supports typed null abstention under
+  [nullable_answer_v2](INTERFACE_CONTRACT.md). Literal `None` remains a string
+  answer; earlier votes retain their original scoring. New runs also use the
+  shared JSON document interface to preserve public source associations.
 - Correct values with wrong provenance can reduce C's coverage. Keep that cost
   visible; a rejected true claim is not evidence that incorrect claims were contained.
 - Comparable live interventions, faithful ablations, held-out repetitions, and

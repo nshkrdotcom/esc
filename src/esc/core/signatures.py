@@ -13,7 +13,10 @@ class ResolveStep(dspy.Signature):
     Do not assume unsupported propositions.
     Return insufficient rather than inventing missing state.
     Return only the requested scalar or entity name in value (no units or prose).
-    Cite exact source IDs shown in document headers, with spans containing the value.
+    Evidence context is a JSON list of documents with source_id, title, and content.
+    Parse the list and search each document's content. Cite the source_id of the
+    document containing the matching span, never the first document by default.
+    Copy the span from that document's decoded content, not the JSON-escaped wrapper.
     """
 
     goal: str = dspy.InputField(desc="Specific sub-goal to resolve for this step.")
@@ -33,6 +36,9 @@ class ContinuousSolve(dspy.Signature):
     """Resolve an entire multi-step dependency problem in a single continuous reasoning trajectory.
 
     All intermediate reasoning, calculations, and deductions occur in this single context.
+    Corpus context is a JSON list of documents with source_id, title, and content.
+    Return null for final_answer if you cannot determine the answer. Do not use
+    the strings "None" or "null" as refusal markers.
     """
 
     task_description: str = dspy.InputField(desc="Complete multi-step task and final goal.")
@@ -41,4 +47,4 @@ class ContinuousSolve(dspy.Signature):
     reasoning_steps: list[str] = dspy.OutputField(
         desc="Step-by-step reasoning trajectory and intermediate deductions.",
     )
-    final_answer: str = dspy.OutputField(desc="Final consolidated answer.")
+    final_answer: str | None = dspy.OutputField(desc="Final consolidated answer, or null to abstain.")

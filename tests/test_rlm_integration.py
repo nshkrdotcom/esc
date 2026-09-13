@@ -16,6 +16,15 @@ from esc.workers.usage import invoke_with_usage
 pytestmark = pytest.mark.skipif(os.environ.get('ESC_TEST_RLM') != '1', reason='Opt-in Deno/Pyodide check')
 
 
+def test_real_rlm_accepts_typed_null_abstention():
+    lm = DummyLM([{'reasoning': 'insufficient evidence',
+                   'code': 'SUBMIT(reasoning_steps=[], final_answer=None)'}])
+    with dspy.context(adapter=dspy.ChatAdapter()):
+        result, usage = invoke_with_usage(ContinuousWorker(sub_lm=lm, max_iters=1),
+                                         task_description='unknown', corpus_context='[]')
+    assert result.final_answer is None and usage['lm_calls'] == 1
+
+
 def test_real_rlm_serialization_usage_and_fresh_interpreters():
     lm = DummyLM([
         {'reasoning': 'scripted fixture', 'code': "assert 'previous_call' not in globals()\nprevious_call = 1\nSUBMIT(result={'status': 'supported', 'value': accepted_facts[0]['value'], 'evidence': [], 'assumptions': []})"},

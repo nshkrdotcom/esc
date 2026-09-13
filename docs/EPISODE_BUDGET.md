@@ -31,8 +31,10 @@ another call then exhausts it. No arbitrary minimum generation floor is used.
 B consumes greedily, up to its configured rollout count, voting only over
 completed rollouts. Ties retain the existing first-seen rule. Exhaustion can
 coexist with a correct B answer from earlier completed rollouts. With zero
-completed answers B abstains. C preserves committed facts and the audit of its
-interrupted step, but cannot promote that step's result. A has no partial vote.
+completed answers B abstains. Under `nullable_answer_v2`, typed null and blank
+continuous answers consume cost and rollout slots but contribute no vote.
+C preserves committed facts and the audit of its interrupted step, but cannot
+promote that step's result. A has no partial vote.
 Budget exhaustion is recorded and the sweep continues. Secondary per-call and
 per-invocation iteration limits remain unchanged and are not equal aggregate
 call limits across architectures.

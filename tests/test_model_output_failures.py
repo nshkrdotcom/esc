@@ -1,4 +1,5 @@
 import dspy
+import pytest
 from dspy.utils.exceptions import AdapterParseError
 
 from esc.benchmark.relational import generate_relational_suite
@@ -13,6 +14,33 @@ class MalformedWorker:
     def forward(self, **inputs):
         dspy.settings.usage_tracker.add_usage('fixture', {'prompt_tokens':20, 'completion_tokens':3})
         raise AdapterParseError('ChatAdapter', dspy.Signature('x -> y'), 'missing field markers')
+
+
+@pytest.mark.parametrize('answer', [None, '', '   '])
+def test_explicit_abstentions_are_charged_and_do_not_vote(answer):
+    task = generate_relational_suite(depths=[2], tasks_per_depth=1)[0]
+    class Worker:
+        calls = 0
+        def forward(self, **inputs):
+            self.calls += 1
+            dspy.settings.usage_tracker.add_usage('fixture', {'prompt_tokens':20, 'completion_tokens':3})
+            return dspy.Prediction(final_answer=answer if self.calls < 3 else task.target_answer())
+    system = SystemBSearchHeavy(use_mock=True)
+    system.sub_system = SystemAContinuous(worker=Worker())
+    result = system.run(task)
+    assert result.is_correct and not result.model_output_error
+    assert result.tokens_used == 69 and result.details['rollouts_count'] == 3
+    assert all(r['abstained'] for r in result.details['rollouts'][:2])
+
+
+def test_missing_answer_is_not_silently_treated_as_abstention():
+    task = generate_relational_suite(depths=[2], tasks_per_depth=1)[0]
+    class Worker:
+        def forward(self, **inputs):
+            dspy.settings.usage_tracker.add_usage('fixture', {'prompt_tokens':20, 'completion_tokens':3})
+            return dspy.Prediction(reasoning_steps=[])
+    result = SystemAContinuous(worker=Worker()).run(task)
+    assert result.model_output_error and result.tokens_used == 23
 
 
 def test_model_format_error_is_measured_unsuccessful_attempt():

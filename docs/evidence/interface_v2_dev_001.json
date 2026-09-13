@@ -1,0 +1,673 @@
+{
+  "scope": "Interface compatibility check; dev seed43 depth2, one repetition; no reliability inference",
+  "local_run": "outputs/interface_v2_dev_001",
+  "audit": {
+    "valid": true,
+    "episodes": 3,
+    "measured_tokens": 51782
+  },
+  "manifest": {
+    "task_sizes": [
+      2
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 43,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120.0,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "episode_token_budget": 24000,
+    "budget_policy": "soft_generation_reservation_v1",
+    "request_journal_version": 1,
+    "model_output_failure_policy": "record_failed_attempt_v1",
+    "corpus_interface": "json_documents_v2",
+    "answer_contract": "nullable_answer_v2",
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "runs": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": false,
+      "tokens_used": 15655,
+      "budget_exhausted": false,
+      "model_output_error": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 13718,
+        "completion_tokens": 1937,
+        "measured_tokens": 15655,
+        "overshoot": 0,
+        "remaining": 8345,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 5,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "depth": 2,
+      "is_correct": true,
+      "abstained": false,
+      "tokens_used": 25538,
+      "budget_exhausted": true,
+      "model_output_error": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 22984,
+        "completion_tokens": 2554,
+        "measured_tokens": 25538,
+        "overshoot": 1538,
+        "remaining": 0,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 8,
+        "calls_blocked": 0,
+        "exhausted": true,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "depth": 2,
+      "is_correct": false,
+      "abstained": true,
+      "tokens_used": 10589,
+      "budget_exhausted": false,
+      "model_output_error": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 24000,
+        "prompt_tokens": 9840,
+        "completion_tokens": 749,
+        "measured_tokens": 10589,
+        "overshoot": 0,
+        "remaining": 13411,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 4,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    }
+  ],
+  "c_trace": [
+    {
+      "step_id": "N1",
+      "result": {
+        "status": "insufficient",
+        "value": null,
+        "evidence": [],
+        "assumptions": [],
+        "raw_output": null
+      },
+      "committed": false,
+      "trajectory": [
+        {
+          "reasoning": "I need to find the row in the evidence_context where the subject is \"e976ac28cfc8d\" and the relation is \"rc3fb95c43e7f\". I will start by parsing the evidence_context string into a list of JSON objects and then filter for the specific subject and relation.",
+          "code": "import json\n\n# Parse the evidence_context string into a list of JSON objects\nevidence_data = json.loads(evidence_context)\n\n# Filter for the row with the specified subject and relation\ntarget_subject = \"e976ac28cfc8d\"\ntarget_relation = \"rc3fb95c43e7f\"\nresult_row = None\n\nfor row in evidence_data:\n    if row[\"subject\"] == target_subject and row[\"relation\"] == target_relation:\n        result_row = row\n        break\n\n# Print the result row and its source_id\nprint(result_row)",
+          "output": "[Error] KeyError: ['subject']"
+        },
+        {
+          "reasoning": "The error indicates that the JSON parsing failed, likely due to the evidence_context string not being properly formatted. I need to inspect the evidence_context string more carefully and ensure it is parsed correctly. I will start by printing a portion of the evidence_context to understand its structure and then attempt parsing again.",
+          "code": "# Print a portion of the evidence_context to understand its structure\nprint(evidence_context[:500])\n\n# Attempt to parse the evidence_context string into a list of JSON objects\ntry:\n    evidence_data = json.loads(evidence_context)\nexcept json.JSONDecodeError as e:\n    print(f\"JSON decode error: {e}\")",
+          "output": "[{\"source_id\": \"s95150a82575b\", \"title\": \"Doc s95150a82575b\", \"content\": \"{\\\"subject\\\": \\\"ef86f7852508e\\\", \\\"relation\\\": \\\"r8d97cddea630\\\", \\\"object\\\": \\\"e56a997b1f600\\\"}\\n{\\\"subject\\\": \\\"e524c7ee6dc40\\\", \\\"relation\\\": \\\"rd2612b1bfff5\\\", \\\"object\\\": \\\"e9ceb683df4a5\\\"}\\n{\\\"subject\\\": \\\"e322493c771f6\\\", \\\"relation\\\": \\\"r639988a12ff1\\\", \\\"object\\\": \\\"e87960c303424\\\"}\\n{\\\"subject\\\": \\\"ef86f7852508e\\\", \\\"relation\\\": \\\"r1427685092e3\\\", \\\"object\\\": \\\"e9ceb683df4a5\\\"}\\n{\\\"subject\\\": \\\"e467424100739\\\", \\\n"
+        },
+        {
+          "reasoning": "The evidence_context string appears to be a JSON list containing a single dictionary with keys \"source_id\", \"title\", and \"content\". The content is a string that contains multiple JSON objects separated by newlines. I need to parse the \"content\" field of the first dictionary in the evidence_context, split it into individual JSON objects, and then search for the row with the specified subject and relation.",
+          "code": "import json\n\n# Parse the evidence_context string into a JSON object\nevidence_dict = json.loads(evidence_context)\n\n# Extract the content string from the first document\ncontent_str = evidence_dict[0][\"content\"]\n\n# Split the content string into individual JSON objects\njson_objects = content_str.split(\"\\n\")\n\n# Parse each JSON object and filter for the target subject and relation\ntarget_subject = \"e976ac28cfc8d\"\ntarget_relation = \"rc3fb95c43e7f\"\nresult_row = None\n\nfor json_obj in json_objects:\n    try:\n        row = json.loads(json_obj)\n        if row[\"subject\"] == target_subject and row[\"relation\"] == target_relation:\n            result_row = row\n            break\n    except json.JSONDecodeError:\n        # Skip invalid JSON objects\n        continue\n\n# Print the result row and its source_id\nprint(result_row)",
+          "output": "None\n"
+        },
+        {
+          "reasoning": "The code executed in Step 3 did not find a matching row, returning `None`. This suggests that either the target subject-relation pair does not exist in the data or there was an issue with parsing. Since the iteration limit is reached, I will now submit the result based on the current state of knowledge.",
+          "code": "SUBMIT({\"status\": \"insufficient\", \"value\": None})",
+          "output": "FINAL: {'result': StepResult(status='insufficient', value=None, evidence=[], assumptions=[], raw_output=None)}"
+        }
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789322102.6170444,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789322114.5889153,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2087,
+      "completion_tokens": 371,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789322114.628697,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789322123.9674034,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2456,
+      "completion_tokens": 359,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789322123.9942183,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789322133.828085,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2825,
+      "completion_tokens": 377,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 7,
+      "time": 1789322133.8544748,
+      "request_id": 4,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 8,
+      "time": 1789322144.5654786,
+      "request_id": 4,
+      "outcome": "measured",
+      "prompt_tokens": 3212,
+      "completion_tokens": 417,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 9,
+      "time": 1789322144.5973852,
+      "request_id": 5,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_A_Continuous",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 10,
+      "time": 1789322156.8748477,
+      "request_id": 5,
+      "outcome": "measured",
+      "prompt_tokens": 3138,
+      "completion_tokens": 413,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789322158.013305,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789322166.3775957,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2087,
+      "completion_tokens": 327,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789322166.4074554,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789322169.256717,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2412,
+      "completion_tokens": 106,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789322169.278655,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789322178.6000497,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2629,
+      "completion_tokens": 364,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 7,
+      "time": 1789322178.6365209,
+      "request_id": 4,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 8,
+      "time": 1789322182.6777577,
+      "request_id": 4,
+      "outcome": "measured",
+      "prompt_tokens": 3005,
+      "completion_tokens": 149,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 9,
+      "time": 1789322183.789585,
+      "request_id": 5,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 10,
+      "time": 1789322193.338406,
+      "request_id": 5,
+      "outcome": "measured",
+      "prompt_tokens": 2087,
+      "completion_tokens": 381,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 11,
+      "time": 1789322193.3764863,
+      "request_id": 6,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 12,
+      "time": 1789322202.1633577,
+      "request_id": 6,
+      "outcome": "measured",
+      "prompt_tokens": 2470,
+      "completion_tokens": 340,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 13,
+      "time": 1789322202.1915138,
+      "request_id": 7,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 14,
+      "time": 1789322212.9887109,
+      "request_id": 7,
+      "outcome": "measured",
+      "prompt_tokens": 2819,
+      "completion_tokens": 412,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 15,
+      "time": 1789322213.062644,
+      "request_id": 8,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_B_SearchHeavy",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 16,
+      "time": 1789322227.2511704,
+      "request_id": 8,
+      "outcome": "measured",
+      "prompt_tokens": 5475,
+      "completion_tokens": 475,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": true
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 1,
+      "time": 1789322228.3948948,
+      "request_id": 1,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 2,
+      "time": 1789322235.2486978,
+      "request_id": 1,
+      "outcome": "measured",
+      "prompt_tokens": 2020,
+      "completion_tokens": 212,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 3,
+      "time": 1789322235.2734036,
+      "request_id": 2,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 4,
+      "time": 1789322239.1342826,
+      "request_id": 2,
+      "outcome": "measured",
+      "prompt_tokens": 2230,
+      "completion_tokens": 148,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 5,
+      "time": 1789322239.1716747,
+      "request_id": 3,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 6,
+      "time": 1789322246.8188589,
+      "request_id": 3,
+      "outcome": "measured",
+      "prompt_tokens": 2649,
+      "completion_tokens": 291,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_start",
+      "sequence": 7,
+      "time": 1789322246.849152,
+      "request_id": 4,
+      "model": "ollama_chat/esc-qwen3:14b-nothink",
+      "input_mode": "messages",
+      "requested_generation": 1024,
+      "capped_generation": 1024
+    },
+    {
+      "task_id": "relational_v2_dev_2f68fdb35d2a7110_d2",
+      "system": "Condition_C_Isolated",
+      "repetition": 0,
+      "event": "request_end",
+      "sequence": 8,
+      "time": 1789322249.5437036,
+      "request_id": 4,
+      "outcome": "measured",
+      "prompt_tokens": 2941,
+      "completion_tokens": 98,
+      "finish_reasons": [
+        "stop"
+      ],
+      "budget_truncated": false,
+      "exhausted": false
+    }
+  ]
+}
