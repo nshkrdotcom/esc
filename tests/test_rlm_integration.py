@@ -54,6 +54,48 @@ SUBMIT(answer=subject)
     assert not result['rollouts'][0]['protocol_violations']
 
 
+def test_premature_submission_can_recover_in_same_interpreter_within_limits():
+    from esc.study_systems import run_variant
+    from esc.benchmark.relational import generate_relational_suite
+    from esc.config import RLMConfig
+    task = generate_relational_suite(depths=[2],tasks_per_depth=1,width=4)[0]
+    first="private_scratch = 42\nSUBMIT(answer='premature')"
+    second='''
+import json
+assert private_scratch == 42
+specs = json.loads(task.split('Public step specifications:\\n')[1])
+rows = read_rows()
+subject = specs[0]['lookup']['subject']
+for spec in specs:
+    row = next(r for r in rows if r['subject']==subject and r['relation']==spec['lookup']['relation'])
+    receipt = emit(spec['step_id'],subject,row['object'],[{'source_id':row['source_id'],'span':row['span']}])
+    subject = receipt['value']
+    if receipt['stop']: break
+SUBMIT(answer=subject)
+'''
+    lm=DummyLM([{'reasoning':'premature','code':first},{'reasoning':'follow public protocol','code':second}])
+    with dspy.context(lm=lm,adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
+        result=run_variant(task,'continuous_emit',lm,RLMConfig(max_iters=2),site=1)
+    assert not result['correct'] and not result['abstained']
+    assert len(result['rollouts'][0]['submission_rejections'])==1
+    assert not result['rollouts'][0]['protocol_violations']
+    assert len(lm.history)==2
+
+
+def test_extraction_cannot_bypass_missing_receipts_after_iteration_limit():
+    from esc.study_systems import run_variant
+    from esc.benchmark.relational import generate_relational_suite
+    from esc.config import RLMConfig
+    task=generate_relational_suite(depths=[2],tasks_per_depth=1,width=4)[0]
+    lm=DummyLM([{'reasoning':'skip receipt','code':"SUBMIT(answer='premature')"},
+                {'answer':task.target_answer()}])
+    with dspy.context(lm=lm,adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
+        result=run_variant(task,'continuous_emit',lm,RLMConfig(max_iters=1))
+    assert not result['correct'] and result['abstained']
+    assert result['rollouts'][0]['protocol_violations']
+    assert len(lm.history)==2  # one configured iteration plus the normal fallback
+
+
 def test_real_rlm_serialization_usage_and_fresh_interpreters():
     lm = DummyLM([
         {'reasoning': 'scripted fixture', 'code': "assert 'previous_call' not in globals()\nprevious_call = 1\nSUBMIT(result={'status': 'supported', 'value': accepted_facts[0]['value'], 'evidence': [], 'assumptions': []})"},

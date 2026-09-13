@@ -9,6 +9,7 @@ from esc.study_protocol import TransitionProtocol
 from esc.workers.usage import invoke_with_usage
 from esc.workers.errors import ModelOutputError
 from esc.budget import BudgetedLM, EpisodeBudgetExhausted
+from esc.protocol_rlm import ProtocolRLM
 
 VARIANTS = ('continuous', 'continuous_emit', 'search_emit', 'isolated_raw',
             'isolated_typed', 'shared_verified', 'isolated_verified')
@@ -60,7 +61,7 @@ PROTOCOL = ('For every public step, call emit(step_id, input_value, value, evide
 
 
 def run_variant(task, variant, lm, config, *, site=None, seed=0, n_samples=3,
-                intervention_mode='candidate', factory=dspy.RLM):
+                intervention_mode='candidate', factory=None):
     if variant not in VARIANTS:
         raise ValueError('Unknown study variant')
     if variant == 'continuous' and site is not None:
@@ -101,7 +102,11 @@ def run_variant(task, variant, lm, config, *, site=None, seed=0, n_samples=3,
             # New module AND interpreter per isolated transition. Shared variants
             # call this exactly once, retaining the RLM's native history/REPL.
             inputs_log.append(inputs)
-            worker = factory(signature, sub_lm=recursive_lm, tools=tools, **config.model_dump())
+            constructor = factory or (ProtocolRLM if variant in
+                {'continuous_emit','search_emit','shared_verified'} else dspy.RLM)
+            extra = {'transition_protocol':protocol} if constructor is ProtocolRLM else {}
+            worker = constructor(signature, sub_lm=recursive_lm, tools=tools,
+                                 **config.model_dump(), **extra)
             prediction, usage = invoke_with_usage(worker, **inputs)
             traces.append(getattr(prediction, 'trajectory', None))
             return prediction
@@ -146,6 +151,7 @@ def run_variant(task, variant, lm, config, *, site=None, seed=0, n_samples=3,
         # No provider/accounting catch: unknown cost must invalidate the batch.
         rollouts.append(dict(answer=answer, events=protocol.events,
             protocol_violations=protocol.violations, model_output_error=error,
+            submission_rejections=protocol.submission_rejections,
             reads=reads, trajectories=traces,
             inputs=[{k: [f.model_dump() for f in v] if k == 'facts' else v
                      for k, v in inp.items()} for inp in inputs_log],

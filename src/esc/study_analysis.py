@@ -63,6 +63,7 @@ def reliability(rows, bootstrap_samples, seed):
             dispatched_calls=float(np.mean([r['ledger']['calls_dispatched'] for r in group])),
             invocations=float(np.mean([sum(len(x.get('inputs',[])) for x in r['rollouts']) for r in group])),
             protocol_violations=sum(bool(x['protocol_violations']) for r in group for x in r['rollouts']),
+            submission_rejections=sum(len(x.get('submission_rejections',[])) for r in group for x in r['rollouts']),
             model_output_errors=sum(bool(x.get('model_output_error')) for r in group for x in r['rollouts']),
             false_promotions=sum(e['accepted'] and e['value'] != r['truth'][e['step_id']]
                 for r in group for x in r['rollouts'] for e in x['events'])

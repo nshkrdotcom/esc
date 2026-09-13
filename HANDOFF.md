@@ -45,10 +45,16 @@ are implemented. Development validation is ongoing. A full held-out study has
   cost/coverage/errors, downstream denominators, four PNG/SVG figures and a real
   clean/intervened trace when available. Degenerate intervals and unidentifiable
   slopes are unavailable rather than falsely precise.
-- Last full verification: **166 tests passed** using
+- Last full verification: **169 tests passed** using
   `ESC_TEST_RLM=1 uv run pytest -q`. Tests include actual Deno/Pyodide receipts,
   retained continuous scratch state, fresh contexts, candidate/state corruption,
-  label-poisoned public-input solvers, and accounting/integrity failures.
+ label-poisoned public-input solvers, and accounting/integrity failures.
+
+The follow-up submission guard keeps premature `SUBMIT` attempts inside the same
+RLM history/interpreter as public protocol errors. Recovery uses only remaining
+iterations and the shared allowance; extraction still cannot bypass receipts.
+Rejected submissions are recorded separately from terminal violations. New plans
+record this policy and root/recursive request roles explicitly.
 
 ## Live evidence and current processes
 
@@ -71,6 +77,14 @@ marker, excluded from analysis. Preserve it.
 two worlds, depth 2, one repetition, two allowance bands, and clean/corrupt pairs
 (52 episodes). Check process status and artifacts before starting another run.
 An existing plan or partial `runs.jsonl` is not a completed study.
+
+A serial validation queue waits for that batch, audits/analyzes it, then runs
+`outputs/study_dev_receipts_001` (12 guarded episodes on dev seed 86) and
+`outputs/study_dev_accepted_001` (six accepted-state episodes on dev seed 84).
+Queue output is `/tmp/esc-validation-queue.log`; processes run in detached sessions
+so chat interruptions do not terminate them. The queue stops on failure. Check
+processes and completion markers before starting anything else; no held-out run
+is queued automatically.
 
 ## Commands and artifacts
 

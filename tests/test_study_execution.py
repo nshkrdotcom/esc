@@ -98,3 +98,11 @@ def test_holdout_requires_repeated_worlds_and_valid_dimensions():
     with pytest.raises(ValueError): StudyConfig(split='test',worlds=1)
     with pytest.raises(ValueError): StudyConfig(depths=[2,2])
     with pytest.raises(ValueError): StudyConfig(budgets=[True])
+
+
+def test_changed_runtime_rejected_before_dispatch(tmp_path,monkeypatch):
+    import esc.study as study
+    path=prepare(tmp_path,monkeypatch)
+    monkeypatch.setattr(study,'runtime_identity',lambda:{'different':True})
+    with pytest.raises(ValueError,match='runtime differs'): run_study(path)
+    assert not (path/'requests.jsonl').exists()

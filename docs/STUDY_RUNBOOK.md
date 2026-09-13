@@ -60,6 +60,15 @@ baseline measures the effect of this extra requirement. A model can still comput
 ahead invisibly; receipts establish observable compliance, not access to private
 reasoning or proof that no anticipatory computation happened.
 
+Under `submission_policy=in_context_receipt_guard_v1`, a premature non-null
+`SUBMIT` instead becomes a public protocol error inside the same RLM history and
+interpreter. The model may correct it using only its remaining configured
+iterations and shared token allowance. Rejections are recorded separately from
+terminal violations. No correct value, hidden label, extra iteration, or free
+repair call is supplied. Extraction at the iteration limit is still checked and
+cannot bypass missing receipts. Older development plans did not have this guard
+and must not be pooled with guarded runs without treating version as a condition.
+
 Intervention values are seeded different valid entities selected from the public
 corpus, with the same seed mapping for each paired task/repetition and rollout.
 If original proposals differ, the replacement can differ; record both rather than

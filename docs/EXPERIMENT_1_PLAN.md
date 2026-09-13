@@ -10,7 +10,7 @@ items below where marked implemented here. `esc study-*` now supplies common
 public-row parsing, in-trajectory continuous emission hooks, explicit isolated
 and shared-history ablations, randomized frozen plans, request replay, repeated
 world-cluster statistics and four figure exports. Candidate and accepted-state
-interventions are separate configuration modes. Offline verification: 166 tests,
+interventions are separate configuration modes. Offline verification: 169 tests,
 including real interpreter persistence and receipt-based corruption.
 
 The M2 policy decision is an exploratory **quality-versus-measured-cost** study at

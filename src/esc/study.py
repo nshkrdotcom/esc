@@ -74,6 +74,11 @@ def source_identity():
     return digest({str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths})
 
 
+def runtime_identity():
+    return dict(python=platform.python_version(), dspy=version('dspy'),
+                deno=subprocess.check_output(['deno','--version'],text=True).strip())
+
+
 def model_identity(model):
     def request(endpoint, payload=None):
         data = json.dumps(payload).encode() if payload else None
@@ -111,6 +116,7 @@ def freeze_study(directory, config: StudyConfig):
         cost_policy='soft_generation_reservation_v1', primary_analysis='quality_vs_measured_cost_v1',
         compute_matched=False, helper='all_public_rows_v1', intervention='transition_receipt_v2',
         request_roles='root_recursive_v1',
+        submission_policy='in_context_receipt_guard_v1',
         caveat='Exploratory relational study; no equal-compute H1 claim')
     plan['plan_hash'] = digest(plan)
     path.mkdir(parents=True)
@@ -121,8 +127,7 @@ def freeze_study(directory, config: StudyConfig):
     # Archive the actual source, not merely a potentially dirty Git revision.
     plan.pop('plan_hash')
     plan['source_archive_sha256'] = hashlib.sha256((path/'source.zip').read_bytes()).hexdigest()
-    plan['runtime'] = dict(python=platform.python_version(), dspy=version('dspy'),
-                          deno=subprocess.check_output(['deno','--version'],text=True).strip())
+    plan['runtime'] = runtime_identity()
     plan['plan_hash'] = digest(plan)
     (path/'plan.json').write_text(json.dumps(plan, indent=2))
     return plan
@@ -134,6 +139,10 @@ def load_plan(path):
         raise ValueError('Frozen plan has changed')
     if 'source_archive_sha256' in plan and hashlib.sha256((Path(path)/'source.zip').read_bytes()).hexdigest() != plan['source_archive_sha256']:
         raise ValueError('Frozen source archive has changed')
+    if 'source_archive_sha256' in plan:
+        with zipfile.ZipFile(Path(path)/'source.zip') as archive:
+            if digest({name:hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist()}) != plan['source_identity']:
+                raise ValueError('Source archive does not match the frozen source identity')
     return plan
 
 
@@ -143,6 +152,8 @@ def run_study(directory):
     config = StudyConfig.model_validate(plan['configuration'])
     if source_identity() != plan['source_identity'] or model_identity(config.model) != plan['model_identity']:
         raise ValueError('Code, lockfile, or served model differs from frozen plan; freeze a new plan')
+    if runtime_identity() != plan.get('runtime'):
+        raise ValueError('Python, DSPy, or Deno runtime differs from frozen plan')
     if any((path/name).exists() for name in ('runs.jsonl', 'requests.jsonl', 'complete.json', 'failure.json')):
         raise FileExistsError('Study already started; incomplete batches must not be silently resumed')
     lm = task_lm(config.model, max_tokens=config.max_tokens, num_ctx=config.num_ctx)

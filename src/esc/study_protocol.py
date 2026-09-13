@@ -27,6 +27,7 @@ class TransitionProtocol:
         self.current = steps[0].lookup.subject
         self.stopped = False
         self.violations = []
+        self.submission_rejections = []
         self.lock = Lock()
 
     def emit(self, step_id: str, input_value: str, value: str | None,
