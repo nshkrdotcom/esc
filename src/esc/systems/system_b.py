@@ -15,6 +15,7 @@ import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
 from esc.config import RLMConfig
+from esc.budget import EpisodeBudgetExhausted
 from esc.core.answers import answers_equal, vote_key
 from esc.systems.base import BaseSystem, SystemResult
 from esc.systems.system_a import SystemAContinuous
@@ -51,9 +52,14 @@ class SystemBSearchHeavy(BaseSystem):
         results: list[SystemResult] = []
         total_tokens = 0
         answers: list[str] = []
+        exhausted = False
 
         for i in range(self.n_samples):
-            sub_res = self.sub_system.run(task)
+            try:
+                sub_res = self.sub_system.run(task)
+            except EpisodeBudgetExhausted:
+                exhausted = True
+                break
             results.append(sub_res)
             total_tokens += sub_res.tokens_used
             if sub_res.final_answer:
@@ -86,6 +92,7 @@ class SystemBSearchHeavy(BaseSystem):
             false_promotions=avg_false_promotions,
             contract_violations=0,
             abstained=best_answer is None,
+            budget_exhausted=exhausted,
             error_propagated=error_propagated,
             details={"rollouts_count": len(results), "rollouts": [r.model_dump() for r in results]},
         )

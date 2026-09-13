@@ -1,11 +1,17 @@
 """Provider-reported token usage, including RLM root and recursive calls."""
 from dspy import Module
 from dspy.utils.usage_tracker import track_usage
+from esc.budget import current_ledger
 
 
 def invoke_with_usage(worker, **inputs):
     with track_usage() as tracker:
-        prediction = worker(**inputs) if isinstance(worker, Module) else worker.forward(**inputs)
+        try:
+            prediction = worker(**inputs) if isinstance(worker, Module) else worker.forward(**inputs)
+        finally:
+            ledger = current_ledger()
+            if ledger:
+                ledger.check()
     usage = tracker.get_total_tokens()
     if not usage or any(
         "prompt_tokens" not in item or "completion_tokens" not in item

@@ -11,7 +11,7 @@ The runtime and first controlled-domain benchmark milestones are complete; the c
 | 90-second research entry point | Missing | Root RESEARCH_NOTE.md added |
 | Comparable tasks at actual depths 2/4/8/16 | Legacy family confounded | M1 below |
 | Equal information without answer-aware source routing | Legacy source selection confounded | M1 below |
-| Shared total episode budget | Not implemented | M2 |
+| Shared episode accounting | Soft allowance implemented; hard/matched policy pending | M2 partial |
 | Matched live A/B/C intervention | Not implemented | M3 |
 | Faithful primitive ablations | Partial names/behaviors only | M4 |
 | Repeated held-out study and uncertainty | Not performed | M5 |
@@ -37,11 +37,17 @@ Limits that remain: this is relational pointer following, not an independently c
 
 Validation: 83 tests passed with the opt-in Deno interpreter test enabled. The live depth-2 development check completed: A/B correct, C abstained on a parsing failure; respective token counts were 11,822 / 48,763 / 14,426. See the [saved evidence snapshot](evidence/relational_v2_validation_001.json). This establishes runtime compatibility, not comparative reliability. M2 is the next implementation gate.
 
-## M2 — shared episode budget (next after M1)
+## M2 — shared episode budget (partial; next validation in HANDOFF.md)
+
+**Implementation update:** a first shared soft allowance is implemented; see
+[exact semantics and remaining limitations](EPISODE_BUDGET.md). It reserves
+generation only and reconciles measured prompt costs. It does not implement the
+validated preflight tokenizer below, claim bounded overshoot, or clear the
+matched-compute gate. The following remains the stricter study target.
 
 Implement one accounting owner around the actual LM backend, shared by root/subcalls, all C steps, and all B rollouts. Do not implement independent per-step caps and call them a matched episode budget.
 
-Before each dispatch reserve prompt plus allowed generation; use a tokenizer compatible with the exact served model or a provider tokenization endpoint, validate it against reported usage, and reject an unverifiable budget configuration. Set the output cap from remaining allowance; reconcile actual usage on completion. Parallel recursive calls must reserve atomically. Include extraction and adapter retries. A budget-exhausted result is a recorded unsuccessful episode, not a backend failure or a silently dropped sample. A backend failure invalidates the batch and preserves diagnostic usage separately.
+For hard enforcement, before each dispatch reserve prompt plus allowed generation; use a tokenizer compatible with the exact served model or a provider tokenization endpoint, validate it against reported usage, and reject an unverifiable budget configuration. Set the output cap from remaining allowance; reconcile actual usage on completion. Parallel recursive calls must reserve atomically. Include extraction and adapter retries. Exhaustion is a recorded episode outcome, not a backend failure or silently dropped sample. An interrupted worker cannot supply an accepted answer; B can still vote over earlier completed rollouts. A backend failure invalidates the batch and preserves diagnostic usage separately.
 
 Calibrate budget bands on development worlds only. B votes over the rollouts it can afford, without labels. Report common allowance, actual tokens, cache status, calls, truncation and exhaustion. Early exits mean actual spend can differ; report quality/cost frontiers and preregister the matching tolerance or allocation policy. Do not pad outputs with meaningless tokens to manufacture equal expenditure.
 

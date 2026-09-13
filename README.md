@@ -2,6 +2,9 @@
 
 MIT License © 2026 nshkrdotcom.
 
+**Resuming work? Read [HANDOFF.md](HANDOFF.md)** for completed validation, exact
+next commands, pending checks, and the ordered implementation roadmap.
+
 ESC explores whether keeping persistent typed state separate from each language-model invocation improves multi-step reliability. DSPy RLM supplies disposable reasoning contexts; a state kernel projects accepted facts and checks candidate outputs against corpus evidence or deterministic arithmetic rules.
 
 Start with [RESEARCH_NOTE.md](RESEARCH_NOTE.md) for the hypothesis, actual evidence, four planned figures and current study status. [EXPERIMENT_1_PLAN.md](docs/EXPERIMENT_1_PLAN.md) tracks implementation gates. Experiment 1 has a validated runtime and an opt-in controlled relational benchmark; the matched-compute study and GEPA remain unfinished.
@@ -17,7 +20,7 @@ Start with [RESEARCH_NOTE.md](RESEARCH_NOTE.md) for the hypothesis, actual evide
 | C — Isolated | One fresh RLM interpreter per step; only projected typed state crosses boundaries |
 | D — GEPA | Deferred; live use is rejected until compilation/loading is implemented |
 
-B's budget is not matched to C. Mock workers intentionally use hidden labels and scripted error behavior; their results cannot support the hypothesis. Live failures stop the run instead of counting as abstentions. Missing token usage is an error.
+B's actual spend is not matched to C. An optional shared soft episode allowance records exhaustion and continues the sweep; prompt costs can overshoot. Mock workers intentionally use hidden labels and scripted error behavior; their results cannot support the hypothesis. Backend/accounting failures stop the run; missing token usage is an error.
 
 ## Setup and offline checks
 

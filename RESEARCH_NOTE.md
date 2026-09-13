@@ -78,6 +78,10 @@ The preserved legacy runtime trace shows A choosing a document-header line, fail
 
 ## Scope, falsification, and next gate
 
+A [shared soft episode allowance](docs/EPISODE_BUDGET.md) now accounts for all
+worker calls and records exhaustion without aborting the sweep. Prompt costs
+can overshoot; this does not yet establish matched compute or clear M2.
+
 The primary claim remains untested until compute, corpus access, depth manipulation, repetitions and uncertainty are controlled. Citation existence is not semantic verification. The new relational family uses a deterministic authoritative-row witness, so any eventual benefit there is scoped to Type I checkable transitions; it would not establish the effect for Type II/III reasoning.
 
 No positive finding is required. Similar slopes, a search-heavy baseline that matches ESC, loss of coverage, or advantages explained by source filtering or verifier strength are useful negative results. GEPA and structural boundary discovery are deferred until the fixed architecture experiment clears these controls.

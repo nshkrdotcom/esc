@@ -34,3 +34,28 @@ def test_real_rlm_serialization_usage_and_fresh_interpreters():
             task_description='scripted test', corpus_context='')
         assert result.final_answer == 'true'
         assert usage['lm_calls'] == 1
+
+
+def test_budget_survives_real_recursive_sandbox_bridge(monkeypatch):
+    from litellm import ModelResponse
+    from esc.budget import BudgetedLM, EpisodeLedger, EpisodeBudgetExhausted
+    calls = []
+    def response(self, **kwargs):
+        calls.append(kwargs)
+        content = ("[[ ## reasoning ## ]]\nfixture\n[[ ## code ## ]]\n"
+                   "llm_query('recursive')\nSUBMIT(final_answer='invalid', reasoning_steps=[])\n"
+                   "[[ ## completed ## ]]")
+        return ModelResponse(model='openai/test', choices=[{'message': {'role': 'assistant',
+            'content': content}, 'finish_reason': 'stop'}],
+            usage={'prompt_tokens': 5 if len(calls) == 1 else 60,
+                   'completion_tokens': 5, 'total_tokens': 10 if len(calls) == 1 else 65})
+    monkeypatch.setattr(dspy.LM, 'forward', response)
+    model = BudgetedLM('openai/test', max_tokens=10, cache=False, num_retries=0)
+    ledger = EpisodeLedger(50)
+    with dspy.context(esc_ledger=ledger, adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
+        with pytest.raises(EpisodeBudgetExhausted):
+            invoke_with_usage(ContinuousWorker(sub_lm=model, max_iters=1),
+                              task_description='fixture', corpus_context='')
+    assert len(calls) == 2
+    assert ledger.snapshot()['measured_tokens'] == 75
+    assert ledger.snapshot()['calls_blocked'] >= 1

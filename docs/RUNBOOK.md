@@ -82,3 +82,11 @@ There is no automatic resume. Earlier completed episodes remain readable after f
 ## Deferred stages
 
 `uv run esc gepa-demo` only demonstrates textual metric feedback. It does not optimize a worker. `--reflection-model`, live Condition D, and `llm_verifier` are rejected until implemented. Do not launch a large study using the old runbook's cost estimates or treat the pilot's slopes as a hypothesis test.
+
+## Optional episode allowance
+
+`--episode-token-budget N --no-mock` enables a shared **soft** allowance across
+all calls in an episode. Prompt usage can overshoot; it is not matched compute.
+See [EPISODE_BUDGET.md](EPISODE_BUDGET.md) for allocation, partial B votes,
+exhaustion, and unknown-usage policies. Budget exhaustion continues the sweep;
+backend/accounting failures still stop it with diagnostics.

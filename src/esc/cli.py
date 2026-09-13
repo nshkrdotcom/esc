@@ -35,6 +35,7 @@ def run(
     reflection_model: Optional[str] = typer.Option(None, help="Reserved; rejected until GEPA compilation is implemented"),
     seed: int = typer.Option(42, help="Corpus and offline mock random seed"),
     max_tokens: int = typer.Option(1024, min=1, help="Maximum generated tokens per LM call, not episode"),
+    episode_token_budget: Optional[int] = typer.Option(None, min=1, help="Soft episode allowance; prompt costs can overshoot"),
     num_ctx: int = typer.Option(8192, min=1024, help="Ollama context window per call"),
     temperature: float = typer.Option(0.6, min=0.0, help="Sampling temperature"),
     max_iters: int = typer.Option(4, min=1, help="REPL iterations per invocation; may add one final extraction call"),
@@ -53,6 +54,8 @@ def run(
         raise typer.BadParameter("Use distinct task sizes from 2,4,8,16")
     if reflection_model:
         raise typer.BadParameter("GEPA compilation is not implemented; omit --reflection-model")
+    if mock and episode_token_budget is not None:
+        raise typer.BadParameter("--episode-token-budget requires --no-mock")
     if benchmark not in {"legacy", "relational_v2"}:
         raise typer.BadParameter("--benchmark must be legacy or relational_v2")
     if split not in {"dev", "train", "validation", "test"} or (benchmark == "legacy" and split != "dev"):
@@ -85,6 +88,7 @@ def run(
                              max_output_chars=max_output_chars),
         n_samples=n_samples,
         benchmark=benchmark, split=split, world_width=world_width,
+        episode_token_budget=episode_token_budget,
     )
 
     # 1. Display Overall Multi-Dimensional Evaluation Vector Table R = (A, C, E, F, V, T)

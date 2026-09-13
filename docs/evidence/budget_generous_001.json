@@ -1,0 +1,104 @@
+{
+  "scope": "Nonbinding development validation only; binding check pending; compute unmatched",
+  "configuration": {
+    "task_sizes": [
+      2
+    ],
+    "tasks_per_depth": 1,
+    "repetitions": 1,
+    "seed": 42,
+    "use_mock": false,
+    "model": "ollama_chat/esc-qwen3:14b-nothink",
+    "lm_parameters": {
+      "temperature": 0.6,
+      "max_tokens": 1024,
+      "num_ctx": 8192,
+      "reasoning_effort": "none",
+      "timeout": 120.0,
+      "top_p": 0.8,
+      "top_k": 20
+    },
+    "rlm": {
+      "max_iters": 4,
+      "max_llm_calls": 4,
+      "max_output_chars": 4000
+    },
+    "n_samples": 3,
+    "adapter": "ChatAdapter (automatic JSON retry disabled)",
+    "python": "3.12.14",
+    "dspy": "3.3.1",
+    "compute_matched": false,
+    "error_injection": false,
+    "episode_token_budget": 100000,
+    "budget_policy": "soft_generation_reservation_v1",
+    "scope": "pipeline pilot; no confirmatory H1 inference",
+    "benchmark": "relational_v2",
+    "split": "dev",
+    "world_width": 16
+  },
+  "results": [
+    {
+      "system_name": "Condition_A_Continuous",
+      "is_correct": true,
+      "tokens_used": 16932,
+      "budget_exhausted": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 15003,
+        "completion_tokens": 1929,
+        "measured_tokens": 16932,
+        "overshoot": 0,
+        "remaining": 83068,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 5,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_B_SearchHeavy",
+      "is_correct": true,
+      "tokens_used": 47208,
+      "budget_exhausted": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 43003,
+        "completion_tokens": 4205,
+        "measured_tokens": 47208,
+        "overshoot": 0,
+        "remaining": 52792,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 13,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    },
+    {
+      "system_name": "Condition_C_Isolated",
+      "is_correct": false,
+      "tokens_used": 4874,
+      "budget_exhausted": false,
+      "ledger": {
+        "policy": "soft_generation_reservation_v1",
+        "budget": 100000,
+        "prompt_tokens": 4334,
+        "completion_tokens": 540,
+        "measured_tokens": 4874,
+        "overshoot": 0,
+        "remaining": 95126,
+        "pending_reserved": 0,
+        "unknown_reserved": 0,
+        "calls_dispatched": 2,
+        "calls_blocked": 0,
+        "exhausted": false,
+        "accounting_failed": false
+      }
+    }
+  ]
+}

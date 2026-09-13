@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import time
 from importlib.metadata import version
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -15,6 +16,7 @@ import dspy
 from esc.benchmark.generator import generate_task_suite
 from esc.benchmark.relational import generate_relational_suite
 from esc.config import RLMConfig
+from esc.budget import BudgetedLM, EpisodeLedger, EpisodeBudgetExhausted
 from esc.telemetry import RunTelemetry
 from esc.eval.decay import HorizonDecayResult, fit_horizon_decay
 from esc.eval.metrics import EvalVector, compute_eval_vector
@@ -66,6 +68,7 @@ def run_experiment_1(
     benchmark: str = "legacy",
     split: str = "dev",
     world_width: int = 16,
+    episode_token_budget: int | None = None,
 ) -> ExperimentResult:
     """Execute Experiment 1: Does epistemic isolation change horizon scaling?
 
@@ -87,6 +90,9 @@ def run_experiment_1(
     if benchmark == "legacy" and split != "dev":
         raise ValueError("Legacy benchmark has no split isolation; use relational_v2")
     rlm_config = rlm_config or RLMConfig()
+    if episode_token_budget is not None:
+        if episode_token_budget < 1 or use_mock or not isinstance(sub_lm, BudgetedLM):
+            raise ValueError("Episode budget requires positive allowance and a live BudgetedLM")
     if n_samples < 1:
         raise ValueError("n_samples must be positive")
     if reflection_lm is not None:
@@ -103,6 +109,8 @@ def run_experiment_1(
         "adapter": "ChatAdapter (automatic JSON retry disabled)",
         "python": platform.python_version(), "dspy": version("dspy"),
         "compute_matched": False, "error_injection": False,
+        "episode_token_budget": episode_token_budget,
+        "budget_policy": "soft_generation_reservation_v1" if episode_token_budget else None,
         "scope": "pipeline pilot; no confirmatory H1 inference",
         "benchmark": benchmark, "split": split,
         "world_width": world_width if benchmark == "relational_v2" else None,
@@ -150,6 +158,8 @@ def run_experiment_1(
         for rep in range(repetitions):
             for sys_name, system in systems.items():
                 episode = {"task_id": task.task_id, "system": sys_name, "repetition": rep}
+                ledger = EpisodeLedger(episode_token_budget) if episode_token_budget else None
+                started = time.perf_counter()
                 if telemetry:
                     telemetry.episode = episode
                     telemetry.record("episode_start")
@@ -158,8 +168,15 @@ def run_experiment_1(
                           f"{sys_name}, {task.task_id}, repetition {rep+1}", flush=True)
                 try:
                     with dspy.context(callbacks=callbacks,
+                                      esc_ledger=ledger,
                                       adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
                         run_res = system.run(task)
+                except EpisodeBudgetExhausted:
+                    run_res = SystemResult(system_name=sys_name, task_id=task.task_id,
+                        depth=task.dependency_depth, final_answer=None,
+                        target_answer=task.target_answer(), is_correct=False,
+                        abstained=True, budget_exhausted=True,
+                        latency_ms=(time.perf_counter()-started)*1000)
                 except (Exception, KeyboardInterrupt) as exc:
                     if telemetry:
                         telemetry.record("episode_failed", error_type=type(exc).__name__, error=str(exc))
@@ -167,8 +184,16 @@ def run_experiment_1(
                         with (out_path / "failure.json").open("w") as handle:
                             json.dump({"task_id": task.task_id, "system": sys_name,
                                        "repetition": rep, "error_type": type(exc).__name__,
-                                       "error": str(exc)}, handle, indent=2)
+                                       "error": str(exc),
+                                       "ledger": ledger.snapshot() if ledger else None}, handle, indent=2)
                     raise
+                if ledger:
+                    state = ledger.snapshot()
+                    run_res.tokens_used = state["measured_tokens"]
+                    run_res.budget_exhausted = state["exhausted"]
+                    run_res.details["ledger"] = state
+                    if telemetry:
+                        telemetry.record("episode_budget", **state)
                 run_res.depth = task.dependency_depth
                 run_res.details.update(repetition=rep, nominal_task_size=task.depth,
                                        use_mock=use_mock, benchmark=benchmark,

@@ -15,7 +15,7 @@ class RLMConfig(BaseModel):
 def task_lm(model=DEFAULT_MODEL, *, max_tokens=1024, num_ctx=8192,
             temperature=0.6, request_timeout=120.0):
     """Use the same uncached settings for root and recursive LM requests."""
-    import dspy
+    from esc.budget import BudgetedLM
 
     if max_tokens < 1 or request_timeout <= 0 or temperature < 0:
         raise ValueError("Invalid LM token limit, temperature, or timeout")
@@ -25,5 +25,5 @@ def task_lm(model=DEFAULT_MODEL, *, max_tokens=1024, num_ctx=8192,
             raise ValueError("num_ctx must exceed max_tokens to leave room for input")
         options = {"api_base": "http://localhost:11434", "num_ctx": num_ctx,
                    "reasoning_effort": "none", "top_p": 0.8, "top_k": 20}
-    return dspy.LM(model, cache=False, temperature=temperature, max_tokens=max_tokens,
+    return BudgetedLM(model, cache=False, temperature=temperature, max_tokens=max_tokens,
                    num_retries=0, timeout=request_timeout, **options)

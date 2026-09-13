@@ -12,6 +12,7 @@ import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
 from esc.config import RLMConfig
+from esc.budget import EpisodeBudgetExhausted
 from esc.core.answers import answers_equal
 from esc.core.kernel import StateKernel
 from esc.core.types import AblationMode, Fact, StepResult
@@ -66,6 +67,7 @@ class SystemCIsolated(BaseSystem):
         rolling_history: list[str] = []
         usages = []
         injection_applied = False
+        exhausted = False
 
         for node in task.nodes:
             step = node.step_spec
@@ -131,10 +133,18 @@ class SystemCIsolated(BaseSystem):
                         true_evidence=node.true_evidence,
                     )
             else:
-                prediction, usage = invoke_with_usage(
-                    self.worker, goal=step.goal, accepted_facts=local_state,
-                    evidence_context=evidence_context,
-                )
+                try:
+                    prediction, usage = invoke_with_usage(
+                        self.worker, goal=step.goal, accepted_facts=local_state,
+                        evidence_context=evidence_context,
+                    )
+                except EpisodeBudgetExhausted:
+                    exhausted = abstained = True
+                    kernel.record_audit(step=step, input_facts=local_state,
+                        result=StepResult(status="insufficient", value=None,
+                                          assumptions=["Episode budget exhausted"]),
+                        committed=False)
+                    break
                 usages.append(usage)
                 step_tokens = usage["total_tokens"]
                 if node.injected_error_value is not None:
@@ -240,6 +250,7 @@ class SystemCIsolated(BaseSystem):
             false_promotions=false_promotions,
             contract_violations=contract_violations,
             abstained=abstained,
+            budget_exhausted=exhausted,
             error_propagated=error_propagated,
             details={"audit_log_length": len(kernel.audit_log),
                      "audit_log": [entry.model_dump(mode="json") for entry in kernel.audit_log],
