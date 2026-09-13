@@ -28,9 +28,9 @@ uv run esc --help
 uv run esc bench --depth 4
 ```
 
-The local task model selected for this workspace is **Qwen3-14B Q4_K_M**, served by Ollama. The CLI default is `ollama_chat/qwen3:14b`; the Hugging Face name can be supplied explicitly. Deno/Pyodide is also required for RLM. No amount of free VRAM is guaranteed: weights, KV cache, runtime buffers, and desktop usage share the 16GB GPU.
+The local task model selected for this workspace is **Qwen3-14B Q4_K_M**, served by Ollama. The CLI default is `ollama_chat/esc-qwen3:14b-nothink`. Create this alias using `ollama create esc-qwen3:14b-nothink -f models/Modelfile.qwen3-nothink`; it reuses the installed Hugging Face weights with a corrected non-thinking template. Deno/Pyodide is also required for RLM. No amount of free VRAM is guaranteed: weights, KV cache, runtime buffers, and desktop usage share the 16GB GPU.
 
-The [runbook](docs/RUNBOOK.md) contains the future live pilot command. Defaults use uncached sampling, temperature 0.6, a 2,048-token output limit per call, and an 8,192-token local context window with thinking disabled. These are pilot settings; the output limit is not an episode budget.
+The [runbook](docs/RUNBOOK.md) contains the live pilot command. Defaults use uncached sampling, temperature 0.6, a 1,024-token output limit per call, and an 8,192-token local context window with thinking disabled. RLM limits are 4 iterations and 4 recursive calls per invocation, with a possible final extraction call. Backend requests time out after 120 seconds. These are pilot settings; the output limit is not an episode budget.
 
 ## Outputs and interpretation
 
@@ -51,6 +51,7 @@ The hypothesis is that isolated state produces a shallower degradation curve. A 
 ## Documentation
 
 - [Runbook](docs/RUNBOOK.md): setup, future pilot commands and artifacts.
+- [Runtime configuration fix](docs/RUNTIME_CONFIGURATION.md): the thinking-template bug, corrected model alias, and completed local validation.
 - [Pre-experiment review](docs/PREFLIGHT_REVIEW.md): fixes and outstanding study blockers.
 - [Architecture](docs/ARCHITECTURE.md): state projection and promotion mechanics.
 - [EpiDAG](docs/EPIDAG_BENCHMARK.md): actual graph topology and limitations.

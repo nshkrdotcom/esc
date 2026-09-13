@@ -11,6 +11,7 @@ from typing import Any
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.config import RLMConfig
 from esc.core.answers import answers_equal
 from esc.core.kernel import StateKernel
 from esc.core.types import AblationMode, Fact, StepResult
@@ -38,6 +39,7 @@ class SystemCIsolated(BaseSystem):
         mock_error_rate: float = 0.0,
         sub_lm: dspy.LM | None = None,
         ablation_mode: AblationMode = "none",
+        rlm_config: RLMConfig | None = None,
     ) -> None:
         super().__init__(name=f"Condition_C_Isolated{f'_{ablation_mode}' if ablation_mode != 'none' else ''}")
         self.use_mock = use_mock
@@ -49,7 +51,7 @@ class SystemCIsolated(BaseSystem):
         elif use_mock:
             self.worker = MockEpistemicWorker(error_rate=mock_error_rate)
         else:
-            self.worker = EpistemicWorker(sub_lm=sub_lm)
+            self.worker = EpistemicWorker(sub_lm=sub_lm, **(rlm_config or RLMConfig()).model_dump())
 
     def run(self, task: EpiDAGTask) -> SystemResult:
         start_time = time.perf_counter()

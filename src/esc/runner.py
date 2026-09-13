@@ -13,6 +13,8 @@ from typing import Any
 import dspy
 
 from esc.benchmark.generator import generate_task_suite
+from esc.config import RLMConfig
+from esc.telemetry import RunTelemetry
 from esc.eval.decay import HorizonDecayResult, fit_horizon_decay
 from esc.eval.metrics import EvalVector, compute_eval_vector
 from esc.systems.base import BaseSystem, SystemResult
@@ -58,6 +60,8 @@ def run_experiment_1(
     reflection_lm: dspy.LM | None = None,
     seed: int = 42,
     output_dir: str | Path | None = None,
+    rlm_config: RLMConfig | None = None,
+    n_samples: int = 3,
 ) -> ExperimentResult:
     """Execute Experiment 1: Does epistemic isolation change horizon scaling?
 
@@ -72,6 +76,9 @@ def run_experiment_1(
         raise ValueError("depths must be distinct task sizes from 2, 4, 8, 16")
     if tasks_per_depth < 1 or repetitions < 1:
         raise ValueError("tasks_per_depth and repetitions must be positive")
+    rlm_config = rlm_config or RLMConfig()
+    if n_samples < 1:
+        raise ValueError("n_samples must be positive")
     if reflection_lm is not None:
         raise NotImplementedError("GEPA compilation is not implemented; pilot runs A/B/C only")
     if not use_mock and (sub_lm is None or sub_lm.cache):
@@ -81,7 +88,9 @@ def run_experiment_1(
         "repetitions": repetitions, "seed": seed, "use_mock": use_mock,
         "model": getattr(sub_lm, "model", None),
         "lm_parameters": {key: getattr(sub_lm, "kwargs", {}).get(key) for key in
-                          ("temperature", "max_tokens", "num_ctx", "reasoning_effort")},
+                          ("temperature", "max_tokens", "num_ctx", "reasoning_effort", "timeout", "top_p", "top_k")},
+        "rlm": rlm_config.model_dump(), "n_samples": n_samples,
+        "adapter": "ChatAdapter (automatic JSON retry disabled)",
         "python": platform.python_version(), "dspy": version("dspy"),
         "compute_matched": False, "error_injection": False,
         "scope": "pipeline pilot; no confirmatory H1 inference",
@@ -96,9 +105,9 @@ def run_experiment_1(
             json.dump(configuration, handle, indent=2, allow_nan=False)
 
     systems: dict[str, BaseSystem] = {
-        "Condition_A_Continuous": SystemAContinuous(use_mock=use_mock, sub_lm=sub_lm),
-        "Condition_B_SearchHeavy": SystemBSearchHeavy(use_mock=use_mock, sub_lm=sub_lm),
-        "Condition_C_Isolated": SystemCIsolated(use_mock=use_mock, sub_lm=sub_lm),
+        "Condition_A_Continuous": SystemAContinuous(use_mock=use_mock, sub_lm=sub_lm, rlm_config=rlm_config),
+        "Condition_B_SearchHeavy": SystemBSearchHeavy(use_mock=use_mock, sub_lm=sub_lm, rlm_config=rlm_config, n_samples=n_samples),
+        "Condition_C_Isolated": SystemCIsolated(use_mock=use_mock, sub_lm=sub_lm, rlm_config=rlm_config),
     }
 
     # Generate test tasks across depths
@@ -122,13 +131,26 @@ def run_experiment_1(
         sys_name: defaultdict(list) for sys_name in systems
     }
     all_runs: list[SystemResult] = []
+    telemetry = RunTelemetry(out_path / "events.jsonl") if out_path else None
+    callbacks = list(dspy.settings.callbacks or []) + ([telemetry] if telemetry else [])
 
     for task in all_tasks:
         for rep in range(repetitions):
             for sys_name, system in systems.items():
+                episode = {"task_id": task.task_id, "system": sys_name, "repetition": rep}
+                if telemetry:
+                    telemetry.episode = episode
+                    telemetry.record("episode_start")
+                if not use_mock:
+                    print(f"Starting {len(all_runs)+1}/{len(all_tasks)*repetitions*len(systems)}: "
+                          f"{sys_name}, {task.task_id}, repetition {rep+1}", flush=True)
                 try:
-                    run_res = system.run(task)
-                except Exception as exc:
+                    with dspy.context(callbacks=callbacks,
+                                      adapter=dspy.ChatAdapter(use_json_adapter_fallback=False)):
+                        run_res = system.run(task)
+                except (Exception, KeyboardInterrupt) as exc:
+                    if telemetry:
+                        telemetry.record("episode_failed", error_type=type(exc).__name__, error=str(exc))
                     if out_path:
                         with (out_path / "failure.json").open("w") as handle:
                             json.dump({"task_id": task.task_id, "system": sys_name,
@@ -140,6 +162,11 @@ def run_experiment_1(
                                        use_mock=use_mock)
                 results_by_system_and_task[sys_name][task.task_id].append(run_res)
                 all_runs.append(run_res)
+                if telemetry:
+                    telemetry.record("episode_end", tokens=run_res.tokens_used, correct=run_res.is_correct)
+                if not use_mock:
+                    print(f"Completed: {run_res.tokens_used} tokens, "
+                          f"{run_res.latency_ms/1000:.1f}s, correct={run_res.is_correct}", flush=True)
                 if out_path:
                     with (out_path / "runs.jsonl").open("a") as handle:
                         handle.write(run_res.model_dump_json() + "\n")

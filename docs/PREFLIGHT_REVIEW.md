@@ -1,5 +1,7 @@
 # Pre-experiment review
 
+Subsequent live configuration diagnosis and validation are recorded in [RUNTIME_CONFIGURATION.md](RUNTIME_CONFIGURATION.md). The settings and no-live-inference statements below describe the original offline review; the current defaults and launch instructions are in [RUNBOOK.md](RUNBOOK.md).
+
 The initial implementation is a pipeline prototype, not yet a controlled test of H₁. No live model experiment was run during this review. Changes are intentionally uncommitted.
 
 ## Fixed before the pilot

@@ -11,6 +11,7 @@ from typing import Any
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.config import RLMConfig
 from esc.core.answers import answers_equal
 from esc.systems.base import BaseSystem, SystemResult
 from esc.workers.continuous import ContinuousWorker
@@ -33,6 +34,7 @@ class SystemAContinuous(BaseSystem):
         use_mock: bool = False,
         mock_error_rate: float = 0.05,
         sub_lm: dspy.LM | None = None,
+        rlm_config: RLMConfig | None = None,
     ) -> None:
         super().__init__(name="Condition_A_Continuous")
         self.use_mock = use_mock
@@ -41,7 +43,7 @@ class SystemAContinuous(BaseSystem):
         elif use_mock:
             self.worker = MockContinuousWorker(error_rate=mock_error_rate)
         else:
-            self.worker = ContinuousWorker(sub_lm=sub_lm)
+            self.worker = ContinuousWorker(sub_lm=sub_lm, **(rlm_config or RLMConfig()).model_dump())
 
     def run(self, task: EpiDAGTask) -> SystemResult:
         start_time = time.perf_counter()

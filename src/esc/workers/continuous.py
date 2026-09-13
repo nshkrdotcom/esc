@@ -18,8 +18,9 @@ class ContinuousWorker(dspy.Module):
         self,
         sub_lm: dspy.LM | None = None,
         use_rlm: bool = True,
-        max_iters: int = 16,
-        max_llm_calls: int = 24,
+        max_iters: int = 4,
+        max_llm_calls: int = 4,
+        max_output_chars: int = 4000,
     ) -> None:
         super().__init__()
         self.use_rlm = use_rlm
@@ -31,6 +32,7 @@ class ContinuousWorker(dspy.Module):
                 sub_lm=sub_lm,
                 max_iters=max_iters,
                 max_llm_calls=max_llm_calls,
+                max_output_chars=max_output_chars,
             )
         else:
             self.solve = dspy.ChainOfThought(ContinuousSolve)

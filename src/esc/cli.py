@@ -11,6 +11,7 @@ from rich.table import Table
 from esc.benchmark.generator import generate_epidag_task
 from esc.eval.gepa_metric import epistemic_gepa_metric
 from esc.runner import run_experiment_1
+from esc.config import DEFAULT_MODEL, RLMConfig, task_lm
 
 app = typer.Typer(
     name="esc",
@@ -26,12 +27,17 @@ def run(
     tasks_per_depth: int = typer.Option(3, min=1, help="Number of unique tasks per depth level"),
     repetitions: int = typer.Option(3, min=1, help="Number of repetitions per task (for pass@k and pass^k)"),
     mock: bool = typer.Option(True, help="Use deterministic/stochastic mock workers for instant offline evaluation"),
-    model: Optional[str] = typer.Option("ollama_chat/qwen3:14b", help="Task LM for RLM and workers"),
+    model: str = typer.Option(DEFAULT_MODEL, help="Task LM for RLM and workers"),
     reflection_model: Optional[str] = typer.Option(None, help="Reserved; rejected until GEPA compilation is implemented"),
     seed: int = typer.Option(42, help="Corpus and offline mock random seed"),
-    max_tokens: int = typer.Option(2048, min=1, help="Maximum generated tokens per LM call, not episode"),
+    max_tokens: int = typer.Option(1024, min=1, help="Maximum generated tokens per LM call, not episode"),
     num_ctx: int = typer.Option(8192, min=1024, help="Ollama context window per call"),
     temperature: float = typer.Option(0.6, min=0.0, help="Sampling temperature"),
+    max_iters: int = typer.Option(4, min=1, help="REPL iterations per invocation; may add one final extraction call"),
+    max_subcalls: int = typer.Option(4, min=0, help="Recursive LM calls per invocation"),
+    max_output_chars: int = typer.Option(4000, min=1, help="REPL output characters visible per entry"),
+    n_samples: int = typer.Option(3, min=1, help="Continuous rollouts in condition B"),
+    request_timeout: float = typer.Option(120.0, min=1.0, help="Timeout in seconds per backend request"),
     output_dir: str = typer.Option("outputs/experiment_1", help="Directory to save experiment results"),
 ) -> None:
     """Run Experiment 1: Does epistemic isolation change horizon scaling?"""
@@ -43,6 +49,8 @@ def run(
         raise typer.BadParameter("Use distinct task sizes from 2,4,8,16")
     if reflection_model:
         raise typer.BadParameter("GEPA compilation is not implemented; omit --reflection-model")
+    if model.startswith("ollama_chat/") and num_ctx <= max_tokens:
+        raise typer.BadParameter("--num-ctx must exceed --max-tokens")
     console.rule("[bold cyan]ESC A/B/C Pipeline Pilot[/bold cyan]")
     rprint(f"[bold]Nominal task sizes:[/bold] {depth_list}")
     rprint(f"[bold]Tasks per depth:[/bold] {tasks_per_depth} | [bold]Repetitions (k):[/bold] {repetitions}")
@@ -51,12 +59,10 @@ def run(
     sub_lm = None
     if not mock:
         import dspy
-        lm_name = model or "ollama_chat/qwen3:14b"
+        lm_name = model
         rprint(f"[yellow]Initializing DSPy Task LM: {lm_name}...[/yellow]")
-        api_base = "http://localhost:11434" if "ollama" in lm_name else None
-        options = {"num_ctx": num_ctx, "reasoning_effort": "none"} if "ollama" in lm_name else {}
-        sub_lm = dspy.LM(lm_name, api_base=api_base, cache=False,
-                         temperature=temperature, max_tokens=max_tokens, num_retries=0, **options)
+        sub_lm = task_lm(lm_name, max_tokens=max_tokens, num_ctx=num_ctx,
+                         temperature=temperature, request_timeout=request_timeout)
         dspy.configure(lm=sub_lm)
 
     exp_result = run_experiment_1(
@@ -67,6 +73,9 @@ def run(
         use_mock=mock,
         sub_lm=sub_lm,
         output_dir=output_dir,
+        rlm_config=RLMConfig(max_iters=max_iters, max_llm_calls=max_subcalls,
+                             max_output_chars=max_output_chars),
+        n_samples=n_samples,
     )
 
     # 1. Display Overall Multi-Dimensional Evaluation Vector Table R = (A, C, E, F, V, T)

@@ -14,6 +14,7 @@ import time
 import dspy
 
 from esc.benchmark.tasks import EpiDAGTask
+from esc.config import RLMConfig
 from esc.core.answers import answers_equal, vote_key
 from esc.systems.base import BaseSystem, SystemResult
 from esc.systems.system_a import SystemAContinuous
@@ -31,6 +32,7 @@ class SystemBSearchHeavy(BaseSystem):
         use_mock: bool = False,
         mock_error_rate: float = 0.08,
         sub_lm: dspy.LM | None = None,
+        rlm_config: RLMConfig | None = None,
     ) -> None:
         super().__init__(name="Condition_B_SearchHeavy")
         if n_samples < 1:
@@ -39,7 +41,8 @@ class SystemBSearchHeavy(BaseSystem):
         self.use_mock = use_mock
         self.mock_error_rate = mock_error_rate
         self.sub_lm = sub_lm
-        self.sub_system = SystemAContinuous(use_mock=use_mock, mock_error_rate=mock_error_rate, sub_lm=sub_lm)
+        self.sub_system = SystemAContinuous(use_mock=use_mock, mock_error_rate=mock_error_rate,
+                                           sub_lm=sub_lm, rlm_config=rlm_config)
 
     def run(self, task: EpiDAGTask) -> SystemResult:
         start_time = time.perf_counter()

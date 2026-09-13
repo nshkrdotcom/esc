@@ -30,7 +30,7 @@ Disputed facts never satisfy a contract. Otherwise assurance orders candidate < 
 
 A receives the question, public step specifications and full corpus. B repeats A three times and selects by majority vote, with stable first-seen tie-breaking. It cannot inspect evaluator correctness when selecting an answer. C receives compiler-selected evidence and facts; the public decomposition is available to all conditions, but the effect of compiler selection still needs an ablation.
 
-All live calls share the task LM. A uses up to 16 iterations and 24 recursive calls per invocation; C uses 8 and 12 per step. These are not equal-token budgets. The provider usage tracker records prompt/completion tokens and total LM call count, including recursive calls. Root/subcall counts are not separately labeled.
+All live calls share the task LM. A and each B rollout use up to 4 iterations and 4 recursive calls per invocation; C uses the same limits per step. The CLI can override these limits for all workers together, and records them in the manifest. A final extraction call may follow iteration exhaustion. These are not equal-token budgets. The provider usage tracker records prompt/completion tokens and total LM call count, including recursive calls. Root/subcall counts are not separately labeled.
 
 ## Failures and persistence
 

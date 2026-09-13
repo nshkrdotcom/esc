@@ -22,8 +22,9 @@ class EpistemicWorker(dspy.Module):
         self,
         sub_lm: dspy.LM | None = None,
         use_rlm: bool = True,
-        max_iters: int = 8,
-        max_llm_calls: int = 12,
+        max_iters: int = 4,
+        max_llm_calls: int = 4,
+        max_output_chars: int = 4000,
     ) -> None:
         super().__init__()
         self.use_rlm = use_rlm
@@ -35,6 +36,7 @@ class EpistemicWorker(dspy.Module):
                 sub_lm=sub_lm,
                 max_iters=max_iters,
                 max_llm_calls=max_llm_calls,
+                max_output_chars=max_output_chars,
             )
         else:
             self.solve = dspy.ChainOfThought(ResolveStep)
